@@ -37,9 +37,11 @@ común que es donde se toman todas las decisiones de seguridad.
   direcciones IP ni ningún secreto.
 - **Sesión persistente opcional**, protegida con DPAPI en el equipo del usuario.
 
-| Acceso | Préstamos | Cuentas |
-|---|---|---|
-| ![Acceso](docs/screenshots/01-acceso.png) | ![Préstamos](docs/screenshots/03-prestamos.png) | ![Usuarios](docs/screenshots/04-usuarios.png) |
+| Acceso | Préstamos |
+|---|---|
+| ![Acceso](docs/screenshots/01-acceso.png) | ![Préstamos](docs/screenshots/03-prestamos.png) |
+| **Cuentas** | **Solicitudes de recuperación** |
+| ![Usuarios](docs/screenshots/04-usuarios.png) | ![Solicitudes](docs/screenshots/05-solicitudes.png) |
 
 ## Arquitectura
 

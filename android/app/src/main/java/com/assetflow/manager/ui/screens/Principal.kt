@@ -347,18 +347,20 @@ private fun TarjetaPrestamo(
 
             Text(prestamo.resumenArticulos, style = MaterialTheme.typography.bodyLarge)
 
-            if (esAdministrador && prestamo.userName.isNotBlank()) {
+            if (esAdministrador && prestamo.userFullName.isNotBlank()) {
                 Text(
-                    prestamo.userName,
+                    prestamo.userFullName,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            if (!prestamo.estadoDetalle.isNullOrBlank()) {
+            val motivo = prestamo.reason
+
+            if (!motivo.isNullOrBlank()) {
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    prestamo.estadoDetalle,
+                    motivo,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

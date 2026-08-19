@@ -3,7 +3,7 @@ package com.assetflow.manager.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.assetflow.manager.data.CreateLoanItem
+import com.assetflow.manager.data.CreateLoanLine
 import com.assetflow.manager.data.CreateLoanRequest
 import com.assetflow.manager.data.CurrentUser
 import com.assetflow.manager.data.LoanDecisionRequest
@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /** Pantalla que se está mostrando. */
 enum class Pantalla {
@@ -282,11 +283,7 @@ class AppViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) {
             val texto = _estado.value.busqueda.trim()
 
             val materiales = sesion.llamar {
-                sesion.api.materiales(
-                    busqueda = texto.takeIf { it.isNotEmpty() },
-                    pagina = 1,
-                    tamano = 100
-                )
+                sesion.api.materiales(busqueda = texto.takeIf { it.isNotEmpty() })
             }
 
             val prestamos = sesion.llamar { sesion.api.prestamos() }
@@ -299,7 +296,7 @@ class AppViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) {
             var fallo: String? = null
 
             when (materiales) {
-                is Resultado.Ok -> listaMateriales = materiales.valor.items
+                is Resultado.Ok -> listaMateriales = materiales.valor
                 is Resultado.Error -> fallo = materiales.mensaje
             }
 
@@ -320,10 +317,18 @@ class AppViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) {
     }
 
     fun solicitarPrestamo(material: MaterialDto, cantidad: Int) {
+        // La API exige fecha estimada de devolución. Dos semanas es el plazo
+        // habitual para material de una asociación; la persona puede pedir la
+        // devolución antes en cualquier momento.
+        val devolucion = LocalDate.now().plusWeeks(2).toString()
+
         operar {
             sesion.llamar {
                 sesion.api.crearPrestamo(
-                    CreateLoanRequest(items = listOf(CreateLoanItem(material.id, cantidad)))
+                    CreateLoanRequest(
+                        estimatedReturnDate = devolucion,
+                        lines = listOf(CreateLoanLine(material.id, cantidad))
+                    )
                 )
             }
         }
