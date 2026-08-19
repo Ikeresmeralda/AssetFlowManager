@@ -1,0 +1,414 @@
+<UserControl x:Class="AssetFlow.Desktop.Views.InventarioPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:AssetFlow.Desktop.Controls"
+             Background="{StaticResource Canvas}">
+
+    <!--
+        INVENTARIO
+        ==========
+        Distribucion en tres bandas: barra de herramientas, tabla y pie de
+        seleccion. La tabla se lleva todo el espacio disponible porque es
+        donde ocurre el trabajo.
+
+        Todo el ancho es proporcional (Grid con *), asi que la pantalla
+        funciona igual en un portatil de 1366 px que en un monitor de 2560.
+    -->
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ==================== BARRA DE HERRAMIENTAS ==================== -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="420"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Busqueda. Es la accion mas frecuente, por eso ocupa la
+                 posicion de lectura inicial y recibe el foco al entrar. -->
+            <Grid Grid.Column="0">
+                <TextBox x:Name="TxtBuscar"
+                         Tag="Buscar por nombre o código…"
+                         AutomationProperties.Name="Buscar artículos"
+                         Padding="32,7,30,7"
+                         TextChanged="AlEscribirBusqueda"
+                         KeyDown="AlPulsarTeclaEnBusqueda"/>
+                <TextBlock Text="{StaticResource Ico.Search}"
+                           Style="{StaticResource Icon.Small}"
+                           HorizontalAlignment="Left" Margin="10,0,0,0"
+                           Foreground="{StaticResource TextSubtle}"
+                           IsHitTestVisible="False"/>
+                <Button x:Name="BtnLimpiar" Visibility="Collapsed"
+                        HorizontalAlignment="Right" Margin="0,0,4,0"
+                        Width="24" Height="24" Padding="0"
+                        Style="{StaticResource Btn.Ghost}"
+                        ToolTip="Limpiar búsqueda (Esc)"
+                        AutomationProperties.Name="Limpiar búsqueda"
+                        Click="AlLimpiarBusqueda">
+                    <TextBlock Text="{StaticResource Ico.Close}" FontSize="10"
+                               Style="{StaticResource Icon.Small}"/>
+                </Button>
+            </Grid>
+
+            <!-- Filtro por estado de stock: es la pregunta que mas se hace
+                 en un inventario ("que me falta"), asi que va a la vista,
+                 no escondida en un menu. -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
+                <ComboBox x:Name="CmbEstado" AutomationProperties.Name="Filtrar por estado de stock" Width="150" Height="32"
+                          VerticalContentAlignment="Center"
+                          FontFamily="{StaticResource FontUI}"
+                          FontSize="13"
+                          SelectionChanged="AlCambiarFiltro">
+                    <ComboBoxItem Content="Todo el stock" IsSelected="True"/>
+                    <ComboBoxItem Content="Stock bajo"/>
+                    <ComboBoxItem Content="Agotado"/>
+                    <ComboBoxItem Content="Disponible"/>
+                </ComboBox>
+            </StackPanel>
+
+            <!-- Acciones -->
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button x:Name="BtnRefrescar" Style="{StaticResource Btn.Ghost}"
+                        Width="32" Padding="0" ToolTip="Actualizar (F5)"
+                        AutomationProperties.Name="Actualizar inventario"
+                        Click="AlRefrescar">
+                    <TextBlock Text="{StaticResource Ico.Refresh}" Style="{StaticResource Icon.Small}"/>
+                </Button>
+
+                <Button x:Name="BtnExportar" Style="{StaticResource Btn.Secondary}"
+                        Margin="8,0,0,0" ToolTip="Exportar la vista actual a CSV"
+                        Click="AlExportar">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{StaticResource Ico.Export}"
+                                   Style="{StaticResource Icon.Small}" Margin="0,0,7,0"/>
+                        <TextBlock Text="Exportar" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="BtnNuevo" Style="{StaticResource Btn.Primary}"
+                        Margin="8,0,0,0" ToolTip="Nuevo artículo (Ctrl+N)"
+                        Click="AlCrear">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{StaticResource Ico.Add}"
+                                   Style="{StaticResource Icon.Small}" Margin="0,0,7,0"/>
+                        <TextBlock Text="Nuevo artículo" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ==================== RESUMEN ====================
+             Tres cifras, sin adornos. Responden de un vistazo a "cuanto
+             tengo" y "que necesito reponer". No son tarjetas grandes con
+             iconos: son datos, y ocupan lo que deben ocupar. -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12"
+                Padding="20,12,20,12">
+            <StackPanel Orientation="Horizontal">
+                <StackPanel>
+                    <TextBlock Text="ARTÍCULOS" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="TxtTotalArticulos" Text="—"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="21" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}"/>
+                </StackPanel>
+
+                <Border Width="1" Background="{StaticResource Border}" Margin="28,2,28,2"/>
+
+                <StackPanel>
+                    <TextBlock Text="UNIDADES TOTALES" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="TxtTotalUnidades" Text="—"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="21" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}"/>
+                </StackPanel>
+
+                <Border Width="1" Background="{StaticResource Border}" Margin="28,2,28,2"/>
+
+                <StackPanel>
+                    <TextBlock Text="PRESTADAS AHORA" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="TxtPrestadas" Text="—"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="21" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}"/>
+                </StackPanel>
+
+                <Border Width="1" Background="{StaticResource Border}" Margin="28,2,28,2"/>
+
+                <StackPanel>
+                    <TextBlock Text="NECESITAN REPOSICIÓN" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock x:Name="TxtStockBajo" Text="—"
+                                   FontFamily="{StaticResource FontDisplay}"
+                                   FontSize="21" FontWeight="SemiBold"
+                                   Foreground="{StaticResource Text}"/>
+                        <Button x:Name="BtnVerStockBajo" Content="Ver"
+                                Style="{StaticResource Btn.Ghost}"
+                                Height="24" Margin="10,3,0,0"
+                                FontSize="12"
+                                Foreground="{StaticResource Accent}"
+                                Visibility="Collapsed"
+                                Click="AlVerStockBajo"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== TABLA ==================== -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" ClipToBounds="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid x:Name="Tabla" Grid.Row="0"
+                          Style="{StaticResource Grid.Table}"
+                          SelectionChanged="AlSeleccionarFila"
+                          MouseDoubleClick="AlDobleClic"
+                          Sorting="AlOrdenar">
+                    <DataGrid.Columns>
+                        <!-- El codigo primero: es como se identifica un articulo
+                             fisicamente (etiqueta, albaran, escaner). -->
+                        <DataGridTextColumn Header="CÓDIGO" Binding="{Binding Id}"
+                                            Width="76" SortMemberPath="Id">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- El nombre se lleva el espacio sobrante: es el dato
+                             que mas varia en longitud. El MinWidth no es
+                             decorativo: sin el, las columnas de ancho fijo se
+                             comian el reparto y el nombre del articulo, que es
+                             el dato principal de la tabla, quedaba en 59 px y
+                             salia truncado a tres letras en todas las filas. -->
+                        <DataGridTextColumn Header="ARTÍCULO" Binding="{Binding Name}"
+                                            Width="*" MinWidth="190" SortMemberPath="Name">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="TIPO" Binding="{Binding Type}"
+                                            Width="102" SortMemberPath="Type">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- La propiedad se sigue llamando Publisher en la API
+                             porque la aplicacion Android consume ese contrato y
+                             renombrar el campo la romperia. Aqui se etiqueta con
+                             el termino correcto para un inventario de material. -->
+                        <DataGridTextColumn Header="PROVEEDOR" Binding="{Binding Publisher}"
+                                            Width="108" SortMemberPath="Publisher">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Cifra a la derecha: los numeros se comparan por la
+                             unidad, y alineados a la derecha se leen en columna. -->
+                        <DataGridTextColumn Header="TOTAL" Binding="{Binding TotalQuantity}"
+                                            Width="64" SortMemberPath="TotalQuantity">
+                            <DataGridTextColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader"
+                                       BasedOn="{StaticResource Grid.ColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.HeaderStyle>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="PRESTADAS" Binding="{Binding OnLoanQuantity}"
+                                            Width="92" SortMemberPath="OnLoanQuantity">
+                            <DataGridTextColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader"
+                                       BasedOn="{StaticResource Grid.ColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.HeaderStyle>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Sin esta columna, las cuentas no cuadran a la
+                             vista: con 5 unidades, 0 prestadas y 2 reservadas
+                             por solicitudes sin aprobar, «disponibles» pone 3
+                             y no hay forma de saber dónde están las otras. -->
+                        <DataGridTextColumn Header="RESERVADAS" Binding="{Binding ReservedQuantity}"
+                                            Width="102" SortMemberPath="ReservedQuantity">
+                            <DataGridTextColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader"
+                                       BasedOn="{StaticResource Grid.ColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.HeaderStyle>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                    <Setter Property="ToolTip"
+                                            Value="Unidades comprometidas por solicitudes pendientes de aprobar"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="DISPONIBLES" Binding="{Binding AvailableQuantity}"
+                                            Width="106" SortMemberPath="AvailableQuantity">
+                            <DataGridTextColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader"
+                                       BasedOn="{StaticResource Grid.ColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.HeaderStyle>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Estado como distintivo con texto: el color solo
+                             refuerza, nunca es la unica senal. -->
+                        <DataGridTemplateColumn Header="ESTADO" Width="102"
+                                                SortMemberPath="AvailableQuantity">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="chip" Style="{StaticResource Badge.Success}">
+                                        <TextBlock x:Name="txt" Text="Disponible"
+                                                   Style="{StaticResource Badge.Text}"
+                                                   Foreground="{StaticResource Success}"/>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="LowStock">
+                                            <Setter TargetName="chip" Property="Style"
+                                                    Value="{StaticResource Badge.Warning}"/>
+                                            <Setter TargetName="txt" Property="Text" Value="Stock bajo"/>
+                                            <Setter TargetName="txt" Property="Foreground"
+                                                    Value="{StaticResource Warning}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="OutOfStock">
+                                            <Setter TargetName="chip" Property="Style"
+                                                    Value="{StaticResource Badge.Danger}"/>
+                                            <Setter TargetName="txt" Property="Text" Value="Agotado"/>
+                                            <Setter TargetName="txt" Property="Foreground"
+                                                    Value="{StaticResource Danger}"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <!-- Acciones de fila: aparecen al apuntar. Visibles
+                             siempre serian 5 iconos por fila multiplicados por
+                             cientos de filas: ruido puro. -->
+                        <DataGridTemplateColumn x:Name="ColAcciones" Header="" Width="80">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel x:Name="acciones" Orientation="Horizontal"
+                                                HorizontalAlignment="Right"
+                                                Visibility="Hidden">
+                                        <Button Style="{StaticResource Btn.Ghost}"
+                                                Width="28" Height="26" Padding="0"
+                                                ToolTip="Editar (F2)"
+                                                AutomationProperties.Name="Editar artículo"
+                                                Click="AlEditarFila">
+                                            <TextBlock Text="{StaticResource Ico.Edit}"
+                                                       Style="{StaticResource Icon.Small}"/>
+                                        </Button>
+                                        <Button Style="{StaticResource Btn.Ghost}"
+                                                Width="28" Height="26" Padding="0"
+                                                Margin="2,0,0,0"
+                                                ToolTip="Eliminar (Supr)"
+                                                AutomationProperties.Name="Eliminar artículo"
+                                                Click="AlEliminarFila">
+                                            <TextBlock Text="{StaticResource Ico.Delete}"
+                                                       Style="{StaticResource Icon.Small}"
+                                                       Foreground="{StaticResource Danger}"/>
+                                        </Button>
+                                    </StackPanel>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Value="True"
+                                                     Binding="{Binding IsMouseOver,
+                                                               RelativeSource={RelativeSource AncestorType=DataGridRow}}">
+                                            <Setter TargetName="acciones" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Value="True"
+                                                     Binding="{Binding IsSelected,
+                                                               RelativeSource={RelativeSource AncestorType=DataGridRow}}">
+                                            <Setter TargetName="acciones" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <!-- Estados sobre la tabla -->
+                <c:EstadoPanel x:Name="Estado" Grid.Row="0" Margin="0,40,0,0"/>
+
+                <!-- Pie: recuento y contexto de la seleccion -->
+                <Border Grid.Row="1" Height="36" Background="{StaticResource SurfaceAlt}"
+                        BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0">
+                    <Grid Margin="16,0,16,0">
+                        <TextBlock x:Name="TxtRecuento" Text=""
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource T.Caption}"/>
+                        <TextBlock x:Name="TxtAyuda"
+                                   Text="Doble clic para editar  ·  F2 editar  ·  Supr eliminar  ·  Ctrl+N nuevo"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Style="{StaticResource T.Caption}"
+                                   Foreground="{StaticResource TextSubtle}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

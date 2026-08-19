@@ -1,0 +1,82 @@
+<Window x:Class="AssetFlow.Desktop.Dialogs.AccesoDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Acceso de la cuenta"
+        Width="470"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{StaticResource Surface}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <!--
+        ACCESO DE LA CUENTA
+        ===================
+        Separado del formulario de datos a propósito: cambiar el rol de alguien
+        o reiniciarle la contraseña son acciones con consecuencias, y no deben
+        poder ocurrir por inercia al pulsar «Guardar» tras corregir un teléfono.
+    -->
+
+    <StackPanel Margin="26,22,26,22">
+
+        <TextBlock Text="Acceso de la cuenta" Style="{StaticResource T.Title}"/>
+        <TextBlock x:Name="Subtitulo" Style="{StaticResource T.Muted}" Margin="0,4,0,0"
+                   TextTrimming="CharacterEllipsis"/>
+
+        <!-- ROL -->
+        <TextBlock x:Name="LblRol" Text="Rol" Style="{StaticResource T.Label}" Margin="0,22,0,5"/>
+        <ComboBox x:Name="CmbRol" Height="34" VerticalContentAlignment="Center"
+                  FontFamily="{StaticResource FontUI}" FontSize="13"
+                  AutomationProperties.LabeledBy="{Binding ElementName=LblRol}">
+            <ComboBoxItem Content="Usuario"/>
+            <ComboBoxItem Content="Administrador"/>
+        </ComboBox>
+
+        <!-- ESTADO -->
+        <CheckBox x:Name="ChkActiva" Margin="0,16,0,0"
+                  Content="La cuenta puede iniciar sesión"/>
+        <TextBlock Text="Al desactivarla se cierran todas sus sesiones abiertas de inmediato."
+                   Style="{StaticResource T.Caption}"
+                   Foreground="{StaticResource TextSubtle}"
+                   TextWrapping="Wrap" Margin="24,4,0,0"/>
+
+        <Border Style="{StaticResource Divider}" Margin="0,20,0,20"/>
+
+        <!-- CONTRASEÑA
+             El administrador no escribe ninguna: la asigna el servidor y la
+             persona queda obligada a cambiarla al entrar. Así el único momento
+             en que existe una contraseña definitiva es cuando la escribe su
+             titular. -->
+        <CheckBox x:Name="ChkCambiarClave" Content="Reiniciar la contraseña"/>
+
+        <TextBlock Text="Se asignará una contraseña provisional que se te mostrará al guardar. Esa persona deberá cambiarla al entrar. Se cerrarán todas las sesiones de esta cuenta."
+                   Style="{StaticResource T.Caption}"
+                   Foreground="{StaticResource TextSubtle}"
+                   TextWrapping="Wrap" Margin="24,6,0,0" LineHeight="16"/>
+
+        <!-- AVISO -->
+        <Border x:Name="PanelAviso" Style="{StaticResource Badge.Warning}"
+                Visibility="Collapsed" Margin="0,18,0,0"
+                HorizontalAlignment="Stretch" Padding="12,9,12,9">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{StaticResource Ico.Warning}"
+                           Style="{StaticResource Icon.Small}" FontSize="12"
+                           Foreground="{StaticResource Warning}"
+                           Margin="0,0,9,0" VerticalAlignment="Top"/>
+                <TextBlock x:Name="TxtAviso" Style="{StaticResource T.Caption}"
+                           Foreground="{StaticResource Warning}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Cancelar" Style="{StaticResource Btn.Secondary}"
+                    Height="34" MinWidth="100" IsCancel="True" Click="AlCancelar"/>
+            <Button x:Name="BtnGuardar" Content="Aplicar cambios"
+                    Style="{StaticResource Btn.Primary}"
+                    Height="34" MinWidth="140" Margin="8,0,0,0"
+                    IsDefault="True" Click="AlGuardar"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

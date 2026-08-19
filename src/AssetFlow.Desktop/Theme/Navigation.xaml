@@ -1,0 +1,117 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!--
+        NAVEGACION LATERAL
+        ==================
+        Cada entrada es un RadioButton: el propio control garantiza que solo
+        una este activa. La version anterior alternaba paneles a mano con
+        Visible = true/false, y era facil dejar dos abiertos a la vez.
+
+        La entrada activa se marca con una barra vertical de acento y fondo
+        mas claro. Es legible tambien para quien no distinga bien los colores,
+        porque la barra es un cambio de forma, no solo de tono.
+    -->
+
+    <Style x:Key="NavItem" TargetType="RadioButton">
+        <Setter Property="Height" Value="38"/>
+        <Setter Property="Margin" Value="8,1,8,1"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="Foreground" Value="{StaticResource NavText}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontUI}"/>
+        <Setter Property="FontSize" Value="{StaticResource Size.Body}"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Grid>
+                        <Border x:Name="bg" Background="Transparent"
+                                CornerRadius="{StaticResource Radius.Md}"
+                                SnapsToDevicePixels="True"/>
+                        <Border x:Name="mark" Width="3" HorizontalAlignment="Left"
+                                Margin="0,7,0,7"
+                                Background="{StaticResource Accent}"
+                                CornerRadius="0,2,2,0"
+                                Visibility="Collapsed"/>
+                        <Grid Margin="12,0,12,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="26"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock x:Name="ico" Grid.Column="0"
+                                       Style="{StaticResource Icon}"
+                                       HorizontalAlignment="Left"
+                                       Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Foreground="{StaticResource NavTextMuted}"/>
+                            <ContentPresenter Grid.Column="1" VerticalAlignment="Center"/>
+                            <!-- Espacio reservado para un contador (p. ej. prestamos
+                                 pendientes). Se rellena con la propiedad Content
+                                 de un elemento hijo cuando haga falta. -->
+                        </Grid>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bg" Property="Background" Value="{StaticResource NavHover}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter TargetName="ico" Property="Foreground" Value="White"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="bg" Property="Background" Value="{StaticResource NavActive}"/>
+                            <Setter TargetName="mark" Property="Visibility" Value="Visible"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                            <Setter TargetName="ico" Property="Foreground" Value="{StaticResource Accent}"/>
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="bg" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            <Setter TargetName="bg" Property="BorderThickness" Value="1"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Encabezado de grupo dentro de la navegacion -->
+    <Style x:Key="NavGroupLabel" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontUI}"/>
+        <Setter Property="FontSize" Value="{StaticResource Size.Micro}"/>
+        <Setter Property="FontWeight" Value="SemiBold"/>
+        <Setter Property="Foreground" Value="{StaticResource NavTextMuted}"/>
+        <Setter Property="Margin" Value="20,16,20,6"/>
+    </Style>
+
+    <!-- Boton de accion sobre fondo oscuro (pie de la navegacion) -->
+    <Style x:Key="NavAction" TargetType="Button">
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="Foreground" Value="{StaticResource NavTextMuted}"/>
+        <Setter Property="FontFamily" Value="{StaticResource FontUI}"/>
+        <Setter Property="FontSize" Value="{StaticResource Size.Caption}"/>
+        <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="bg" Background="{TemplateBinding Background}"
+                            CornerRadius="{StaticResource Radius.Md}"
+                            Padding="12,0,12,0">
+                        <ContentPresenter VerticalAlignment="Center"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bg" Property="Background" Value="{StaticResource NavHover}"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

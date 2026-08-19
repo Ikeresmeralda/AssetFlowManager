@@ -1,0 +1,144 @@
+<Window x:Class="AssetFlow.Desktop.Dialogs.UsuarioDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Cuenta de usuario"
+        Height="620" Width="480"
+        SizeToContent="Height"
+        MaxHeight="720"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{StaticResource Surface}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <StackPanel Margin="26,22,26,22">
+
+        <TextBlock x:Name="Titulo" Text="Nueva cuenta" Style="{StaticResource T.Title}"/>
+        <TextBlock x:Name="Subtitulo" Style="{StaticResource T.Muted}" Margin="0,4,0,0"
+                   TextTrimming="CharacterEllipsis"/>
+
+        <!-- IDENTIDAD -->
+        <TextBlock x:Name="LblUsuario" Text="Nombre de usuario"
+                   Style="{StaticResource T.Label}" Margin="0,22,0,5"/>
+        <TextBox x:Name="TxtUsuario" Height="34" MaxLength="50"
+                 Tag="Sin espacios ni acentos"
+                 AutomationProperties.LabeledBy="{Binding ElementName=LblUsuario}"
+                 TextChanged="AlEditarCampo"/>
+        <TextBlock x:Name="ErrUsuario" Style="{StaticResource T.Caption}"
+                   Foreground="{StaticResource Danger}" TextWrapping="Wrap"
+                   Margin="0,4,0,0" Visibility="Collapsed"/>
+
+        <Grid Margin="0,14,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="12"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" x:Name="LblNombre" Text="Nombre"
+                       Style="{StaticResource T.Label}" Margin="0,0,0,5"/>
+            <TextBox Grid.Row="1" Grid.Column="0" x:Name="TxtNombre" Height="34" MaxLength="100"
+                     AutomationProperties.LabeledBy="{Binding ElementName=LblNombre}"
+                     TextChanged="AlEditarCampo"/>
+            <TextBlock Grid.Row="2" Grid.Column="0" x:Name="ErrNombre"
+                       Style="{StaticResource T.Caption}"
+                       Foreground="{StaticResource Danger}" TextWrapping="Wrap"
+                       Margin="0,4,0,0" Visibility="Collapsed"/>
+
+            <TextBlock Grid.Row="0" Grid.Column="2" x:Name="LblApellidos" Text="Apellidos"
+                       Style="{StaticResource T.Label}" Margin="0,0,0,5"/>
+            <TextBox Grid.Row="1" Grid.Column="2" x:Name="TxtApellidos" Height="34" MaxLength="100"
+                     AutomationProperties.LabeledBy="{Binding ElementName=LblApellidos}"
+                     TextChanged="AlEditarCampo"/>
+            <TextBlock Grid.Row="2" Grid.Column="2" x:Name="ErrApellidos"
+                       Style="{StaticResource T.Caption}"
+                       Foreground="{StaticResource Danger}" TextWrapping="Wrap"
+                       Margin="0,4,0,0" Visibility="Collapsed"/>
+        </Grid>
+
+        <!-- CONTACTO -->
+        <TextBlock x:Name="LblCorreo" Text="Correo electrónico"
+                   Style="{StaticResource T.Label}" Margin="0,14,0,5"/>
+        <TextBox x:Name="TxtCorreo" Height="34" MaxLength="255"
+                 Tag="nombre@ejemplo.com"
+                 AutomationProperties.LabeledBy="{Binding ElementName=LblCorreo}"
+                 TextChanged="AlEditarCampo"/>
+        <TextBlock x:Name="ErrCorreo" Style="{StaticResource T.Caption}"
+                   Foreground="{StaticResource Danger}" TextWrapping="Wrap"
+                   Margin="0,4,0,0" Visibility="Collapsed"/>
+
+        <TextBlock x:Name="LblTelefono" Text="Teléfono (opcional)"
+                   Style="{StaticResource T.Label}" Margin="0,14,0,5"/>
+        <TextBox x:Name="TxtTelefono" Height="34" MaxLength="30"
+                 AutomationProperties.LabeledBy="{Binding ElementName=LblTelefono}"
+                 TextChanged="AlEditarCampo"/>
+
+        <!-- ACCESO: solo al crear. Cambiarlo despues tiene su propio dialogo,
+             porque son operaciones con consecuencias distintas. -->
+        <StackPanel x:Name="PanelAlta">
+            <TextBlock x:Name="LblClave" Text="Contraseña inicial"
+                       Style="{StaticResource T.Label}" Margin="0,14,0,5"/>
+            <Grid>
+                <PasswordBox x:Name="TxtClave" Height="34" MaxLength="128"
+                             AutomationProperties.LabeledBy="{Binding ElementName=LblClave}"
+                             PasswordChanged="AlEditarClave"/>
+                <Button x:Name="BtnGenerar" Content="Generar"
+                        HorizontalAlignment="Right" Margin="0,0,4,0"
+                        Height="26" Padding="10,0,10,0"
+                        Style="{StaticResource Btn.Ghost}"
+                        FontSize="12"
+                        Foreground="{StaticResource Accent}"
+                        ToolTip="Genera una contraseña aleatoria y la copia al portapapeles"
+                        Click="AlGenerarClave"/>
+            </Grid>
+            <TextBlock x:Name="ErrClave" Style="{StaticResource T.Caption}"
+                       Foreground="{StaticResource Danger}" TextWrapping="Wrap"
+                       Margin="0,4,0,0" Visibility="Collapsed"/>
+            <TextBlock Text="Mínimo 10 caracteres. La persona debería cambiarla al entrar."
+                       Style="{StaticResource T.Caption}"
+                       Foreground="{StaticResource TextSubtle}"
+                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+
+            <TextBlock x:Name="LblRol" Text="Rol" Style="{StaticResource T.Label}" Margin="0,14,0,5"/>
+            <ComboBox x:Name="CmbRol" Height="34" VerticalContentAlignment="Center"
+                      FontFamily="{StaticResource FontUI}" FontSize="13"
+                      AutomationProperties.LabeledBy="{Binding ElementName=LblRol}">
+                <ComboBoxItem Content="Usuario" IsSelected="True"/>
+                <ComboBoxItem Content="Administrador"/>
+            </ComboBox>
+            <TextBlock Text="Un administrador puede dar de alta material, cuentas y prestar en nombre de otros."
+                       Style="{StaticResource T.Caption}"
+                       Foreground="{StaticResource TextSubtle}"
+                       TextWrapping="Wrap" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- ERROR GENERAL -->
+        <Border x:Name="PanelError" Style="{StaticResource Badge.Danger}"
+                Visibility="Collapsed" Margin="0,16,0,0"
+                HorizontalAlignment="Stretch" Padding="12,9,12,9">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{StaticResource Ico.Error}"
+                           Style="{StaticResource Icon.Small}" FontSize="12"
+                           Foreground="{StaticResource Danger}"
+                           Margin="0,0,9,0" VerticalAlignment="Top"/>
+                <TextBlock x:Name="TxtError" Style="{StaticResource T.Caption}"
+                           Foreground="{StaticResource Danger}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Content="Cancelar" Style="{StaticResource Btn.Secondary}"
+                    Height="34" MinWidth="100" IsCancel="True" Click="AlCancelar"/>
+            <Button x:Name="BtnGuardar" Content="Crear cuenta"
+                    Style="{StaticResource Btn.Primary}"
+                    Height="34" MinWidth="130" Margin="8,0,0,0"
+                    IsDefault="True" Click="AlGuardar"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

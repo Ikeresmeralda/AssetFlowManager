@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AssetFlow.Api/AssetFlow.Api.csproj" />
+    <Project Path="src/AssetFlow.Core/AssetFlow.Core.csproj" />
+    <Project Path="src/AssetFlow.Desktop/AssetFlow.Desktop.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AssetFlow.Api.Tests/AssetFlow.Api.Tests.csproj" />
+  </Folder>
+</Solution>

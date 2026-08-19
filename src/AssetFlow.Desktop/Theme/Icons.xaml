@@ -1,0 +1,75 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <!--
+        ICONOGRAFIA
+        ===========
+        Se usa la fuente de iconos del sistema (Segoe Fluent Icons en Windows 11,
+        Segoe MDL2 Assets en Windows 10). Ventajas frente a imagenes PNG:
+        son vectoriales (nitidos a cualquier DPI), heredan el color del texto
+        y no anaden ni un byte al instalador.
+    -->
+
+    <FontFamily x:Key="FontIcons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+    <Style x:Key="Icon" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource FontIcons}"/>
+        <Setter Property="FontSize" Value="15"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType"/>
+    </Style>
+
+    <Style x:Key="Icon.Small" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+
+    <Style x:Key="Icon.Large" TargetType="TextBlock" BasedOn="{StaticResource Icon}">
+        <Setter Property="FontSize" Value="22"/>
+    </Style>
+
+    <!-- Navegacion -->
+    <sys:String x:Key="Ico.Home">&#xE80F;</sys:String>
+    <sys:String x:Key="Ico.Inventory">&#xE7B8;</sys:String>
+    <sys:String x:Key="Ico.Loans">&#xE8F1;</sys:String>
+    <sys:String x:Key="Ico.Users">&#xE716;</sys:String>
+    <sys:String x:Key="Ico.Settings">&#xE713;</sys:String>
+
+    <!-- Acciones -->
+    <sys:String x:Key="Ico.Add">&#xE710;</sys:String>
+    <sys:String x:Key="Ico.Edit">&#xE70F;</sys:String>
+    <sys:String x:Key="Ico.Delete">&#xE74D;</sys:String>
+    <sys:String x:Key="Ico.Search">&#xE721;</sys:String>
+    <sys:String x:Key="Ico.Refresh">&#xE72C;</sys:String>
+    <sys:String x:Key="Ico.Filter">&#xE71C;</sys:String>
+    <sys:String x:Key="Ico.Export">&#xE896;</sys:String>
+    <sys:String x:Key="Ico.Save">&#xE74E;</sys:String>
+    <sys:String x:Key="Ico.Close">&#xE711;</sys:String>
+    <sys:String x:Key="Ico.Back">&#xE72B;</sys:String>
+    <sys:String x:Key="Ico.SignOut">&#xE7E8;</sys:String>
+    <sys:String x:Key="Ico.More">&#xE712;</sys:String>
+
+    <!-- Estados -->
+    <sys:String x:Key="Ico.Warning">&#xE7BA;</sys:String>
+    <sys:String x:Key="Ico.Error">&#xEA39;</sys:String>
+    <sys:String x:Key="Ico.Success">&#xE930;</sys:String>
+    <sys:String x:Key="Ico.Info">&#xE946;</sys:String>
+    <sys:String x:Key="Ico.Empty">&#xE7C3;</sys:String>
+    <sys:String x:Key="Ico.Offline">&#xEB5E;</sys:String>
+    <sys:String x:Key="Ico.Online">&#xE701;</sys:String>
+
+    <!--
+        Estados del prestamo. Cada uno tiene simbolo propio para que el estado
+        se distinga sin depender del color.
+    -->
+    <sys:String x:Key="Ico.Pending">&#xE823;</sys:String>
+    <sys:String x:Key="Ico.Approved">&#xE73E;</sys:String>
+    <sys:String x:Key="Ico.Rejected">&#xE711;</sys:String>
+    <sys:String x:Key="Ico.ReturnPending">&#xE7B8;</sys:String>
+    <sys:String x:Key="Ico.Overdue">&#xE7BA;</sys:String>
+    <sys:String x:Key="Ico.Returned">&#xE8FB;</sys:String>
+    <sys:String x:Key="Ico.Key">&#xE192;</sys:String>
+    <sys:String x:Key="Ico.Mail">&#xE715;</sys:String>
+
+</ResourceDictionary>

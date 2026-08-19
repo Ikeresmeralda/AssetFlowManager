@@ -1,0 +1,149 @@
+<Window x:Class="AssetFlow.Desktop.Views.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AssetFlow Manager"
+        Icon="/Assets/app.ico"
+        Height="580" Width="900"
+        ResizeMode="CanMinimize"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource Surface}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <!--
+        ACCESO
+        ======
+        Dos mitades: identidad a la izquierda, formulario a la derecha.
+
+        El fondo es un degradado plano generado por la propia aplicacion. La
+        version anterior cargaba aqui un GIF animado de 504 fotogramas y 28 MB
+        que habia que descomprimir entero antes de mostrar la ventana: era el
+        principal motivo de que la aplicacion tardara en arrancar.
+    -->
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="380"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ==================== IDENTIDAD ==================== -->
+        <Border Grid.Column="0">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="0.9,1">
+                    <GradientStop Color="#171B22" Offset="0"/>
+                    <GradientStop Color="#1B2432" Offset="0.55"/>
+                    <GradientStop Color="#13233F" Offset="1"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid Margin="40,40,40,36">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Grid.Row="0" Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="7"
+                            Background="{StaticResource Accent}">
+                        <TextBlock Text="{StaticResource Ico.Inventory}"
+                                   Style="{StaticResource Icon}"
+                                   Foreground="White" FontSize="16"/>
+                    </Border>
+                    <TextBlock Text="AssetFlow Manager" Margin="12,0,0,0"
+                               VerticalAlignment="Center"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="19" FontWeight="SemiBold"
+                               Foreground="White"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" VerticalAlignment="Center">
+                    <TextBlock Text="Control de material,&#x0a;sin hojas de cálculo."
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="27" FontWeight="SemiBold"
+                               Foreground="White" LineHeight="36"
+                               TextOptions.TextFormattingMode="Ideal"/>
+
+                    <TextBlock Text="Consulta el stock, registra préstamos y controla las existencias desde un único sitio."
+                               Margin="0,16,0,0" MaxWidth="290"
+                               HorizontalAlignment="Left"
+                               TextWrapping="Wrap" LineHeight="21"
+                               FontFamily="{StaticResource FontUI}" FontSize="13"
+                               Foreground="{StaticResource NavText}"/>
+                </StackPanel>
+
+                <TextBlock Grid.Row="2" x:Name="TxtServidorInfo" Text=""
+                           FontFamily="{StaticResource FontUI}" FontSize="11"
+                           Foreground="{StaticResource NavTextMuted}"
+                           TextTrimming="CharacterEllipsis"/>
+            </Grid>
+        </Border>
+
+        <!-- ==================== FORMULARIO ==================== -->
+        <Grid Grid.Column="1">
+            <StackPanel VerticalAlignment="Center" Margin="56,0,56,0" MaxWidth="330">
+
+                <TextBlock Text="Iniciar sesión" Style="{StaticResource T.Title}"/>
+                <TextBlock Text="Introduce tus credenciales para acceder."
+                           Style="{StaticResource T.Muted}" Margin="0,6,0,0"/>
+
+                <TextBlock x:Name="LblUsuario" Text="Usuario" Style="{StaticResource T.Label}" Margin="0,28,0,5"/>
+                <TextBox x:Name="TxtUsuario" Height="38"
+                         Tag="Nombre de usuario"
+                         TextChanged="AlEscribir"
+                         AutomationProperties.LabeledBy="{Binding ElementName=LblUsuario}"/>
+
+                <TextBlock x:Name="LblClave" Text="Contraseña" Style="{StaticResource T.Label}" Margin="0,14,0,5"/>
+                <PasswordBox x:Name="TxtClave" Height="38"
+                             PasswordChanged="AlEscribir"
+                             KeyDown="AlPulsarTecla"
+                             AutomationProperties.LabeledBy="{Binding ElementName=LblClave}"/>
+
+                <!-- Lo que se recuerda es un token revocable cifrado con DPAPI,
+                     nunca la contrasena. El texto lo dice para que la decision
+                     del usuario sea informada. -->
+                <CheckBox x:Name="ChkRecordar" Margin="0,14,0,0"
+                          Content="Mantener la sesión iniciada en este equipo"
+                          ToolTip="Se guarda una credencial cifrada con tu cuenta de Windows. Nunca se guarda tu contraseña."/>
+
+                <!-- El error se muestra aqui, junto al formulario, en lugar de
+                     en una ventana emergente que hay que cerrar antes de
+                     volver a intentarlo. -->
+                <Border x:Name="PanelError" Style="{StaticResource Badge.Danger}"
+                        Visibility="Collapsed" Margin="0,16,0,0"
+                        HorizontalAlignment="Stretch" Padding="12,9,12,9">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{StaticResource Ico.Error}"
+                                   Style="{StaticResource Icon.Small}" FontSize="12"
+                                   Foreground="{StaticResource Danger}"
+                                   Margin="0,0,9,0" VerticalAlignment="Top"/>
+                        <TextBlock x:Name="TxtError" Text=""
+                                   Style="{StaticResource T.Caption}"
+                                   Foreground="{StaticResource Danger}"
+                                   TextWrapping="Wrap" MaxWidth="270"/>
+                    </StackPanel>
+                </Border>
+
+                <Button x:Name="BtnAcceder" Content="Acceder"
+                        Height="38" Margin="0,20,0,0"
+                        Style="{StaticResource Btn.Primary}"
+                        IsDefault="True"
+                        Click="AlAcceder"/>
+
+                <Button x:Name="BtnRecuperar" Content="He olvidado mi contraseña"
+                        Margin="0,10,0,0" Height="32"
+                        Style="{StaticResource Btn.Ghost}"
+                        Foreground="{StaticResource Accent}"
+                        Click="AlRecuperar"/>
+
+                <Border Style="{StaticResource Divider}" Margin="0,10,0,0"/>
+
+                <Button x:Name="BtnServidor" Content="Configurar servidor"
+                        Margin="0,10,0,0" Height="32"
+                        Style="{StaticResource Btn.Ghost}"
+                        Click="AlConfigurarServidor"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

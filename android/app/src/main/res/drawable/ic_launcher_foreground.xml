@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Caja de inventario, en vector. Se usa un vector y no un PNG para que el
+    icono no dependa de ficheros binarios en el repositorio: así el repositorio
+    se lee entero en texto y no hay que confiar en imágenes opacas.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <group android:translateX="27" android:translateY="27">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M27,4 L48,13.5 L48,40.5 L27,50 L6,40.5 L6,13.5 Z M27,10.4 L12.6,16.9 L27,23.4 L41.4,16.9 Z M10,21.5 L10,37.9 L24,44.2 L24,27.8 Z M30,27.8 L30,44.2 L44,37.9 L44,21.5 Z" />
+    </group>
+</vector>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        Tema mínimo del sistema. Todo el aspecto visual lo define Compose en
+        ui/theme/Theme.kt; esto sólo evita el parpadeo blanco del arranque.
+    -->
+    <style name="Theme.AssetFlow" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+</resources>

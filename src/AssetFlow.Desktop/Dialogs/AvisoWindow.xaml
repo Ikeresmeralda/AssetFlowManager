@@ -1,0 +1,77 @@
+<Window x:Class="AssetFlow.Desktop.Dialogs.AvisoWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        SizeToContent="Height" Width="440"
+        WindowStartupLocation="CenterOwner"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <!--
+        DIALOGO
+        =======
+        Sustituye al MessageBox del sistema, que rompia la identidad visual
+        en cuanto aparecia. Reglas aplicadas:
+          - El titulo dice que va a pasar, no "Atencion".
+          - El boton nombra la accion ("Eliminar"), no "Aceptar": asi se
+            entiende que se va a hacer sin releer el texto.
+          - En una accion destructiva, el boton por defecto es Cancelar.
+    -->
+
+    <Border Background="{StaticResource Surface}"
+            CornerRadius="{StaticResource Radius.Lg}"
+            BorderBrush="{StaticResource Border}" BorderThickness="1"
+            Margin="18">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="26" ShadowDepth="5" Direction="270"
+                              Color="#000000" Opacity="0.22"/>
+        </Border.Effect>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="24,24,24,20">
+                <StackPanel Orientation="Horizontal">
+                    <Border x:Name="IconoFondo" Width="34" Height="34" CornerRadius="17"
+                            Background="{StaticResource AccentSoft}"
+                            VerticalAlignment="Top">
+                        <TextBlock x:Name="Icono" Text="{StaticResource Ico.Info}"
+                                   Style="{StaticResource Icon}"
+                                   Foreground="{StaticResource Accent}"/>
+                    </Border>
+
+                    <TextBlock x:Name="Titulo" Text=""
+                               Margin="14,0,0,0" VerticalAlignment="Center"
+                               Style="{StaticResource T.Subtitle}"
+                               TextWrapping="Wrap" MaxWidth="330"/>
+                </StackPanel>
+
+                <TextBlock x:Name="Mensaje" Text=""
+                           Margin="48,10,0,0"
+                           TextWrapping="Wrap"
+                           Style="{StaticResource T.Muted}"
+                           LineHeight="19"/>
+            </StackPanel>
+
+            <Border Grid.Row="1" Background="{StaticResource SurfaceAlt}"
+                    BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0"
+                    CornerRadius="0,0,6,6" Padding="20,14,20,14">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="BtnCancelar" Content="Cancelar"
+                            MinWidth="96" Visibility="Collapsed"
+                            Style="{StaticResource Btn.Secondary}"
+                            IsCancel="True"
+                            Click="AlCancelar"/>
+                    <Button x:Name="BtnConfirmar" Content="Aceptar"
+                            MinWidth="112" Margin="8,0,0,0"
+                            Style="{StaticResource Btn.Primary}"
+                            Click="AlConfirmar"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

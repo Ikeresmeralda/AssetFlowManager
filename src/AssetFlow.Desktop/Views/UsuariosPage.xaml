@@ -1,0 +1,278 @@
+<UserControl x:Class="AssetFlow.Desktop.Views.UsuariosPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:AssetFlow.Desktop.Controls"
+             Background="{StaticResource Canvas}">
+
+    <!--
+        USUARIOS
+        ========
+        Sección exclusiva de administradores. Que esté oculta para el resto es
+        comodidad visual; quien llegue aquí manipulando el cliente recibirá 403
+        de la API en cada petición.
+    -->
+
+    <Grid Margin="24,20,24,20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ==================== BARRA DE HERRAMIENTAS ==================== -->
+        <Grid Grid.Row="0" Margin="0,0,0,14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MaxWidth="420"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <TextBox x:Name="TxtBuscar"
+                         Tag="Buscar por nombre, usuario o correo…"
+                         Padding="32,7,30,7"
+                         AutomationProperties.Name="Buscar usuarios"
+                         TextChanged="AlEscribirBusqueda"
+                         KeyDown="AlPulsarTeclaEnBusqueda"/>
+                <TextBlock Text="{StaticResource Ico.Search}"
+                           Style="{StaticResource Icon.Small}"
+                           HorizontalAlignment="Left" Margin="10,0,0,0"
+                           Foreground="{StaticResource TextSubtle}"
+                           IsHitTestVisible="False"/>
+                <Button x:Name="BtnLimpiar" Visibility="Collapsed"
+                        HorizontalAlignment="Right" Margin="0,0,4,0"
+                        Width="24" Height="24" Padding="0"
+                        Style="{StaticResource Btn.Ghost}"
+                        ToolTip="Limpiar búsqueda (Esc)"
+                        AutomationProperties.Name="Limpiar búsqueda"
+                        Click="AlLimpiarBusqueda">
+                    <TextBlock Text="{StaticResource Ico.Close}" FontSize="10"
+                               Style="{StaticResource Icon.Small}"/>
+                </Button>
+            </Grid>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
+                <ComboBox x:Name="CmbFiltro" Width="150" Height="32"
+                          VerticalContentAlignment="Center"
+                          FontFamily="{StaticResource FontUI}"
+                          FontSize="13"
+                          AutomationProperties.Name="Filtrar cuentas"
+                          SelectionChanged="AlCambiarFiltro">
+                    <ComboBoxItem Content="Cuentas activas" IsSelected="True"/>
+                    <ComboBoxItem Content="Administradores"/>
+                    <ComboBoxItem Content="Desactivadas"/>
+                    <ComboBoxItem Content="Todas"/>
+                </ComboBox>
+            </StackPanel>
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                <Button x:Name="BtnRefrescar" Style="{StaticResource Btn.Ghost}"
+                        Width="32" Padding="0" ToolTip="Actualizar (F5)"
+                        AutomationProperties.Name="Actualizar usuarios"
+                        Click="AlRefrescar">
+                    <TextBlock Text="{StaticResource Ico.Refresh}" Style="{StaticResource Icon.Small}"/>
+                </Button>
+
+                <Button x:Name="BtnNuevo" Style="{StaticResource Btn.Primary}"
+                        Margin="8,0,0,0" ToolTip="Nueva cuenta (Ctrl+N)"
+                        Click="AlCrear">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{StaticResource Ico.Add}"
+                                   Style="{StaticResource Icon.Small}" Margin="0,0,7,0"/>
+                        <TextBlock Text="Nueva cuenta" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ==================== RESUMEN ==================== -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Margin="0,0,0,12"
+                Padding="20,12,20,12">
+            <StackPanel Orientation="Horizontal">
+                <StackPanel>
+                    <TextBlock Text="CUENTAS ACTIVAS" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="TxtActivas" Text="—"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="21" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}"/>
+                </StackPanel>
+
+                <Border Width="1" Background="{StaticResource Border}" Margin="28,2,28,2"/>
+
+                <StackPanel>
+                    <TextBlock Text="ADMINISTRADORES" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="TxtAdmins" Text="—"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="21" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}"/>
+                </StackPanel>
+
+                <Border Width="1" Background="{StaticResource Border}" Margin="28,2,28,2"/>
+
+                <StackPanel>
+                    <TextBlock Text="CON MATERIAL PRESTADO" Style="{StaticResource T.SectionHeader}" Margin="0,0,0,3"/>
+                    <TextBlock x:Name="TxtConPrestamos" Text="—"
+                               FontFamily="{StaticResource FontDisplay}"
+                               FontSize="21" FontWeight="SemiBold"
+                               Foreground="{StaticResource Text}"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- ==================== TABLA ==================== -->
+        <Border Grid.Row="2" Style="{StaticResource Card}" ClipToBounds="True">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <DataGrid x:Name="Tabla" Grid.Row="0"
+                          Style="{StaticResource Grid.Table}"
+                          SelectionChanged="AlSeleccionarFila"
+                          MouseDoubleClick="AlDobleClic">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="USUARIO" Binding="{Binding Username}" Width="150">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="12"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="NOMBRE" Binding="{Binding NombreCompleto}" Width="*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="CORREO" Binding="{Binding Email}" Width="200">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="PRÉSTAMOS" Binding="{Binding ActiveLoans}" Width="90">
+                            <DataGridTextColumn.HeaderStyle>
+                                <Style TargetType="DataGridColumnHeader"
+                                       BasedOn="{StaticResource Grid.ColumnHeader}">
+                                    <Setter Property="HorizontalContentAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.HeaderStyle>
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="FontSize" Value="13"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <!-- Rol y estado con texto; el color solo acompaña. -->
+                        <DataGridTemplateColumn Header="ROL" Width="130">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Border x:Name="chip" Style="{StaticResource Badge.Neutral}">
+                                        <TextBlock x:Name="txt" Text="{Binding RolTexto}"
+                                                   Style="{StaticResource Badge.Text}"
+                                                   Foreground="{StaticResource TextMuted}"/>
+                                    </Border>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding EsAdministrador}" Value="True">
+                                            <Setter TargetName="chip" Property="Style"
+                                                    Value="{StaticResource Badge.Warning}"/>
+                                            <Setter TargetName="txt" Property="Foreground"
+                                                    Value="{StaticResource Warning}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsActive}" Value="False">
+                                            <Setter TargetName="chip" Property="Style"
+                                                    Value="{StaticResource Badge.Danger}"/>
+                                            <Setter TargetName="txt" Property="Text" Value="Desactivada"/>
+                                            <Setter TargetName="txt" Property="Foreground"
+                                                    Value="{StaticResource Danger}"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+
+                        <DataGridTemplateColumn Header="" Width="130">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <StackPanel x:Name="acciones" Orientation="Horizontal"
+                                                HorizontalAlignment="Right"
+                                                Visibility="Hidden">
+                                        <Button Style="{StaticResource Btn.Ghost}"
+                                                Width="28" Height="26" Padding="0"
+                                                ToolTip="Editar datos (F2)"
+                                                AutomationProperties.Name="Editar usuario"
+                                                Click="AlEditarFila">
+                                            <TextBlock Text="{StaticResource Ico.Edit}"
+                                                       Style="{StaticResource Icon.Small}"/>
+                                        </Button>
+                                        <Button Style="{StaticResource Btn.Ghost}"
+                                                Height="26" Padding="8,0,8,0"
+                                                Margin="2,0,0,0" FontSize="12"
+                                                Content="Acceso"
+                                                ToolTip="Cambiar rol o desactivar la cuenta"
+                                                Click="AlCambiarAccesoFila"/>
+                                        <Button Style="{StaticResource Btn.Ghost}"
+                                                Width="28" Height="26" Padding="0"
+                                                Margin="2,0,0,0"
+                                                ToolTip="Eliminar o desactivar la cuenta"
+                                                AutomationProperties.Name="Eliminar usuario"
+                                                Click="AlEliminarFila">
+                                            <TextBlock Text="{StaticResource Ico.Delete}"
+                                                       Style="{StaticResource Icon.Small}"
+                                                       Foreground="{StaticResource Danger}"/>
+                                        </Button>
+                                    </StackPanel>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Value="True"
+                                                     Binding="{Binding IsMouseOver,
+                                                               RelativeSource={RelativeSource AncestorType=DataGridRow}}">
+                                            <Setter TargetName="acciones" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                        <DataTrigger Value="True"
+                                                     Binding="{Binding IsSelected,
+                                                               RelativeSource={RelativeSource AncestorType=DataGridRow}}">
+                                            <Setter TargetName="acciones" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <c:EstadoPanel x:Name="Estado" Grid.Row="0" Margin="0,40,0,0"/>
+
+                <Border Grid.Row="1" Height="36" Background="{StaticResource SurfaceAlt}"
+                        BorderBrush="{StaticResource Border}" BorderThickness="0,1,0,0">
+                    <Grid Margin="16,0,16,0">
+                        <TextBlock x:Name="TxtRecuento" Text=""
+                                   VerticalAlignment="Center"
+                                   Style="{StaticResource T.Caption}"/>
+                        <TextBlock Text="Doble clic o F2 para editar  ·  Ctrl+N nueva cuenta"
+                                   HorizontalAlignment="Right" VerticalAlignment="Center"
+                                   Style="{StaticResource T.Caption}"
+                                   Foreground="{StaticResource TextSubtle}"/>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

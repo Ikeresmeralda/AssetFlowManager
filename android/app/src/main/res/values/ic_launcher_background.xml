@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- El mismo azul de acento que usan el escritorio y Compose. -->
+    <color name="ic_launcher_background">#1F5FD6</color>
+</resources>

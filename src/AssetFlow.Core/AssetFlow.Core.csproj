@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- El codigo heredado ha desaparecido por completo, asi que ya se puede
+         exigir nullabilidad: los avisos que quedan senalan defectos reales. -->
+    <Nullable>enable</Nullable>
+    <RootNamespace>AssetFlow.Core</RootNamespace>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <!-- Simbolos dentro del propio ensamblado: sin esto la publicacion del
+         escritorio arrastraba un AssetFlow.Core.pdb suelto a la carpeta que
+         se distribuye. -->
+    <DebugType>embedded</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- BCrypt ya NO es una dependencia del cliente. Las contrasenas se
+         verifican en la API; el escritorio nunca ve un hash. -->
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="8.0.0" />
+  </ItemGroup>
+
+</Project>
