@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>AssetFlow.Desktop</RootNamespace>
+    <AssemblyName>AssetFlow</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+
+    <!-- Identidad del producto: aparece en el Explorador, en Programas y
+         caracteristicas y en las propiedades del ejecutable. -->
+    <Product>AssetFlow Manager</Product>
+    <AssemblyTitle>AssetFlow Manager</AssemblyTitle>
+    <Company>Iker</Company>
+    <Description>Gestion de inventario y prestamos de material</Description>
+    <Copyright>Copyright © 2026</Copyright>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <!-- Los ajustes de publicacion viven en Properties/PublishProfiles/win-x64.pubxml.
+       No se ponen aqui a proposito: fijar RuntimeIdentifier en el proyecto
+       afecta tambien a dotnet build, que pasaria a generar salida especifica
+       de plataforma y a cambiar las rutas de bin. -->
+
+  <PropertyGroup>
+    <SatelliteResourceLanguages>es;en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AssetFlow.Core\AssetFlow.Core.csproj" />
+  </ItemGroup>
+
+</Project>

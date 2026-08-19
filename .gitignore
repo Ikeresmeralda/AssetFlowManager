@@ -1,0 +1,143 @@
+# ---------------------------------------------------------------------------
+# .NET
+# ---------------------------------------------------------------------------
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+project.lock.json
+.packages/
+packages/
+
+# ---------------------------------------------------------------------------
+# IDE
+# ---------------------------------------------------------------------------
+.vs/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+.idea/
+*.iml
+
+# ---------------------------------------------------------------------------
+# Secretos y configuracion local
+#
+# La configuracion con valores reales NUNCA entra en el repositorio.
+# Solo se versionan appsettings.json (sin secretos) y los .example.
+# Ver docs/configuration.md.
+# ---------------------------------------------------------------------------
+appsettings.Local.json
+appsettings.Production.json
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.p12
+*.key
+*.pem
+*.cer
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------------------
+# Bases de datos locales
+# ---------------------------------------------------------------------------
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+
+# ---------------------------------------------------------------------------
+# Logs y volcados
+# ---------------------------------------------------------------------------
+*.log
+logs/
+*.hprof
+*.dmp
+
+# ---------------------------------------------------------------------------
+# Resultados de pruebas y cobertura
+# ---------------------------------------------------------------------------
+TestResults/
+[Tt]est[Rr]esult*/
+coverage/
+*.coverage
+*.coverlet.json
+coverage.*.xml
+*.trx
+
+# ---------------------------------------------------------------------------
+# Herramientas de asistencia y agentes locales
+#
+# Son configuracion del entorno de quien programa, no del proyecto: quien
+# clone el repositorio no las necesita para compilar ni para ejecutar nada, y
+# publicarlas expondria ajustes personales sin aportar nada a cambio.
+# ---------------------------------------------------------------------------
+.claude/
+.codex/
+.agents/
+.cursor/
+.aider*
+.continue/
+.windsurfrules
+.mcp.json
+skills-lock.json
+CLAUDE.md
+AGENTS.md
+GEMINI.md
+
+# ---------------------------------------------------------------------------
+# Archivos temporales y de trabajo
+# ---------------------------------------------------------------------------
+*.bak
+*.old
+*.orig
+*.rej
+*.tmp
+*~
+scratchpad/
+
+# ---------------------------------------------------------------------------
+# Instalador (salida generada)
+# ---------------------------------------------------------------------------
+installer/Output/
+
+# ---------------------------------------------------------------------------
+# Respaldos locales del autor: no forman parte del proyecto
+# ---------------------------------------------------------------------------
+_copia_seguridad_*.zip
+_respaldo_*/
+
+# ---------------------------------------------------------------------------
+# Android
+# ---------------------------------------------------------------------------
+.gradle/
+build/
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.jks
+*.keystore
+google-services.json
+
+# ---------------------------------------------------------------------------
+# Sistema operativo
+# ---------------------------------------------------------------------------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

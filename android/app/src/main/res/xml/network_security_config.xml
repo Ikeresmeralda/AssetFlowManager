@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sin tráfico en claro. Ni una excepción, ni un dominio anotado aquí.
+
+    La versión anterior de esta aplicación llevaba una dirección IP concreta
+    escrita en este mismo fichero con cleartextTrafficPermitted="true". Eso
+    hacía dos cosas malas a la vez: publicaba en el repositorio la dirección de
+    una máquina real, y mandaba las credenciales por HTTP sin cifrar hacia ella.
+
+    La dirección del servidor la escribe quien usa la aplicación al arrancarla
+    por primera vez, igual que en el cliente de escritorio, y el cliente HTTP
+    rechaza cualquier URL que no sea https://.
+
+    Para desarrollo contra un servidor local existe una versión de este fichero
+    en src/debug/res/xml/ que sí permite claro contra el bucle local. Sólo se
+    aplica a las compilaciones de depuración: la release nunca lo lleva.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

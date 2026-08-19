@@ -1,0 +1,72 @@
+<UserControl x:Class="AssetFlow.Desktop.Controls.EstadoPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{StaticResource Surface}"
+             Visibility="Collapsed">
+
+    <!--
+        ESTADOS DE UNA VISTA
+        ====================
+        Cargando, sin resultados, vacio y error, unificados en un solo control.
+        Antes una tabla en blanco podia significar tres cosas distintas y el
+        usuario no tenia forma de saber cual.
+
+        Un estado vacio bien resuelto explica que ha pasado y ofrece la accion
+        siguiente; no se limita a decir "sin datos".
+    -->
+
+    <Grid>
+        <!-- Cargando -->
+        <StackPanel x:Name="PanelCargando" Visibility="Collapsed"
+                    HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!-- Indicador discreto: tres puntos con desfase. Comunica actividad
+                 sin convertirse en el centro de atencion. -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <StackPanel.Resources>
+                    <Style TargetType="Ellipse">
+                        <Setter Property="Width" Value="7"/>
+                        <Setter Property="Height" Value="7"/>
+                        <Setter Property="Margin" Value="3,0,3,0"/>
+                        <Setter Property="Fill" Value="{StaticResource BorderStrong}"/>
+                    </Style>
+                </StackPanel.Resources>
+                <Ellipse x:Name="P1"/>
+                <Ellipse x:Name="P2"/>
+                <Ellipse x:Name="P3"/>
+            </StackPanel>
+            <TextBlock x:Name="TxtCargando" Text="Cargando…"
+                       Margin="0,14,0,0" HorizontalAlignment="Center"
+                       Style="{StaticResource T.Muted}"/>
+        </StackPanel>
+
+        <!-- Vacio / sin resultados / error -->
+        <StackPanel x:Name="PanelMensaje" Visibility="Collapsed"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    MaxWidth="380">
+
+            <Border x:Name="IconoFondo" Width="52" Height="52" CornerRadius="26"
+                    Background="{StaticResource SurfaceSunken}"
+                    HorizontalAlignment="Center">
+                <TextBlock x:Name="Icono" Style="{StaticResource Icon.Large}"
+                           Text="{StaticResource Ico.Empty}"
+                           Foreground="{StaticResource TextSubtle}"/>
+            </Border>
+
+            <TextBlock x:Name="Titulo" Text=""
+                       Margin="0,16,0,0" HorizontalAlignment="Center"
+                       TextAlignment="Center"
+                       Style="{StaticResource T.Subtitle}"/>
+
+            <TextBlock x:Name="Detalle" Text=""
+                       Margin="0,6,0,0" HorizontalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap"
+                       Style="{StaticResource T.Muted}"/>
+
+            <Button x:Name="BtnAccion" Content="" Visibility="Collapsed"
+                    Margin="0,18,0,0" HorizontalAlignment="Center"
+                    MinWidth="150"
+                    Style="{StaticResource Btn.Secondary}"
+                    Click="AlPulsarAccion"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

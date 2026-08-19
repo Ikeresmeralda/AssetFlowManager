@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    # Se incluyen los dos nombres habituales de rama principal: este
+    # repositorio usa `master` y renombrarlo mas adelante no debe dejar la
+    # integracion continua sin ejecutarse en silencio.
+    branches: [main, master]
+  pull_request:
+    # Se incluyen los dos nombres habituales de rama principal: este
+    # repositorio usa `master` y renombrarlo mas adelante no debe dejar la
+    # integracion continua sin ejecutarse en silencio.
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Windows y no Linux porque la solucion incluye un proyecto WPF
+    # (net8.0-windows), que no compila en otro sistema.
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # Los proyectos tienen como objetivo .NET 8, pero el formato de
+          # solucion .slnx no lo entiende el SDK 8: hace falta uno mas reciente
+          # para leerlo. Se instalan los dos y se compila contra net8.0.
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restaurar
+        run: dotnet restore AssetFlow.slnx
+
+      - name: Compilar
+        # Los avisos se tratan como errores solo aqui, no en local: el objetivo
+        # es que no se acumulen en la rama principal sin entorpecer el trabajo
+        # del dia a dia.
+        run: dotnet build AssetFlow.slnx --configuration Release --no-restore -warnaserror
+
+      - name: Probar
+        run: dotnet test AssetFlow.slnx --configuration Release --no-build --verbosity normal
+
+      - name: Comprobar que la publicacion funciona
+        # Publicar en integracion continua evita descubrir en el momento de
+        # sacar una version que el empaquetado esta roto.
+        run: dotnet publish src/AssetFlow.Desktop/AssetFlow.Desktop.csproj -p:PublishProfile=win-x64 --configuration Release

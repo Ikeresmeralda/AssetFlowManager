@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    La copia de seguridad está desactivada en el manifiesto
+    (allowBackup="false"). Estas reglas son el cinturón sobre los tirantes: si
+    alguien la reactivara, el almacén cifrado con el token de sesión seguiría
+    quedando fuera.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="assetflow_sesion.xml" />
+</full-backup-content>
