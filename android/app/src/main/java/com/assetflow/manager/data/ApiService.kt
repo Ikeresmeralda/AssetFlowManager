@@ -47,12 +47,14 @@ interface ApiService {
     // Material
     // -----------------------------------------------------------------------
 
+    /**
+     * Lista de material. Devuelve todo, sin paginar: el inventario de una
+     * asociación son decenas de artículos, no miles.
+     */
     @GET("api/materials")
     suspend fun materiales(
-        @Query("search") busqueda: String? = null,
-        @Query("page") pagina: Int = 1,
-        @Query("pageSize") tamano: Int = 50
-    ): Response<PagedMaterials>
+        @Query("search") busqueda: String? = null
+    ): Response<List<MaterialDto>>
 
     // -----------------------------------------------------------------------
     // Préstamos

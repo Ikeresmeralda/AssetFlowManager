@@ -75,25 +75,17 @@ data class MaterialDto(
     val type: String? = null,
     val publisher: String? = null,
     val totalQuantity: Int,
-    val availableQuantity: Int,
+    val onLoanQuantity: Int = 0,
     val reservedQuantity: Int = 0,
-    val lowStockThreshold: Int = 0
+    val availableQuantity: Int,
+    val lowStockThreshold: Int = 0,
+    val status: String? = null,
+    val version: String? = null
 ) {
-    /** Unidades fuera del almacén: total menos lo libre menos lo reservado. */
-    val prestadas: Int get() = (totalQuantity - availableQuantity - reservedQuantity).coerceAtLeast(0)
-
     val sinStock: Boolean get() = availableQuantity <= 0
 
     val stockBajo: Boolean get() = !sinStock && availableQuantity <= lowStockThreshold
 }
-
-@Serializable
-data class PagedMaterials(
-    val items: List<MaterialDto> = emptyList(),
-    val total: Int = 0,
-    val page: Int = 1,
-    val pageSize: Int = 20
-)
 
 // ---------------------------------------------------------------------------
 // Préstamos
@@ -115,38 +107,61 @@ data class LoanLineDto(
     val quantity: Int
 )
 
+/**
+ * Préstamo tal y como lo devuelve la API.
+ *
+ * El servidor **no** manda el texto del estado ni banderas del tipo
+ * «estaPendiente»: manda `status` en crudo y el cliente decide cómo
+ * presentarlo. El cliente de escritorio hace lo mismo en `AssetFlow.Core`.
+ */
 @Serializable
 data class LoanDto(
     val id: Int,
     val userId: Int,
-    val userName: String = "",
+    val userFullName: String = "",
     val status: String,
-    val estadoTexto: String = "",
-    val estadoDetalle: String? = null,
+    val reason: String? = null,
     val requestedAt: String? = null,
     val loanDate: String? = null,
-    val dueDate: String? = null,
+    val estimatedReturnDate: String? = null,
     val returnDate: String? = null,
-    val items: List<LoanLineDto> = emptyList(),
-    @SerialName("estaPendiente") val pendiente: Boolean = false,
-    @SerialName("estaActivo") val activo: Boolean = false,
-    @SerialName("tieneDevolucionSolicitada") val devolucionSolicitada: Boolean = false,
-    @SerialName("estaCerrado") val cerrado: Boolean = false,
+    val returnRequestedAt: String? = null,
+    val decidedByName: String? = null,
+    val decisionNote: String? = null,
+    val lines: List<LoanLineDto> = emptyList(),
     val isOverdue: Boolean = false
 ) {
     val resumenArticulos: String
-        get() = items.joinToString(", ") { "${it.quantity} × ${it.materialName}" }
+        get() = lines.joinToString(", ") { "${it.quantity} × ${it.materialName}" }
             .ifEmpty { "Sin artículos" }
+
+    /** Estado en palabras, para no depender sólo del color. */
+    val estadoTexto: String
+        get() = when (status) {
+            EstadosPrestamo.PENDIENTE -> "Pendiente"
+            EstadosPrestamo.ACTIVO -> "En curso"
+            EstadosPrestamo.DEVOLUCION_SOLICITADA -> "Devolución pendiente"
+            EstadosPrestamo.DEVUELTO -> "Devuelto"
+            EstadosPrestamo.RECHAZADO -> "Rechazado"
+            else -> status
+        }
 }
 
 @Serializable
-data class CreateLoanItem(val materialId: Int, val quantity: Int)
+data class CreateLoanLine(val materialId: Int, val quantity: Int)
 
+/**
+ * Alta de préstamo.
+ *
+ * `userId` se omite a propósito: el servidor lo ignora salvo para
+ * administración y usa el del token. Mandarlo desde aquí sería pedirle que
+ * confíe en el cliente.
+ */
 @Serializable
 data class CreateLoanRequest(
-    val items: List<CreateLoanItem>,
-    val dueDate: String? = null,
-    val notes: String? = null
+    val estimatedReturnDate: String,
+    val lines: List<CreateLoanLine>,
+    val reason: String? = null
 )
 
 @Serializable

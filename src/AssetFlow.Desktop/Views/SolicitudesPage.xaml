@@ -57,21 +57,25 @@
                 CornerRadius="{StaticResource Radius.Md}">
             <Grid>
                 <DataGrid x:Name="Tabla"
-                          AutoGenerateColumns="False"
-                          IsReadOnly="True"
-                          HeadersVisibility="Column"
-                          SelectionMode="Single"
+                          Style="{StaticResource Grid.Table}"
                           AutomationProperties.Name="Solicitudes de recuperación de contraseña">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Usuario" Width="160"
-                                            Binding="{Binding Username}"/>
-                        <DataGridTextColumn Header="Nombre" Width="*"
+                        <DataGridTextColumn Header="USUARIO" Width="150"
+                                            Binding="{Binding Username}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="FontFamily" Value="{StaticResource FontMono}"/>
+                                    <Setter Property="VerticalAlignment" Value="Center"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="NOMBRE" Width="*"
                                             Binding="{Binding FullName}"/>
-                        <DataGridTextColumn Header="Solicitada" Width="150"
+                        <DataGridTextColumn Header="SOLICITADA" Width="150"
                                             Binding="{Binding SolicitadaTexto}"/>
-                        <DataGridTextColumn Header="Estado" Width="110"
+                        <DataGridTextColumn Header="ESTADO" Width="120"
                                             Binding="{Binding Estado}"/>
-                        <DataGridTextColumn Header="Resuelta por" Width="140"
+                        <DataGridTextColumn Header="RESUELTA POR" Width="140"
                                             Binding="{Binding ResolvedByUsername}"/>
 
                         <DataGridTemplateColumn Header="" Width="200">
