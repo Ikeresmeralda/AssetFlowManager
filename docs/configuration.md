@@ -93,7 +93,7 @@ openssl rand -base64 48
 export ASSETFLOW_Jwt__Key="LA-CLAVE-GENERADA"
 export ASSETFLOW_Seed__AdminPassword="LA-CONTRASENA-INICIAL"
 export ASSETFLOW_Database__Provider="SqlServer"
-export ASSETFLOW_ConnectionStrings__Default="Server=SERVIDOR;Database=Inventario;User Id=USUARIO;Password=CONTRASENA;Encrypt=True;TrustServerCertificate=False"
+export ASSETFLOW_ConnectionStrings__Default="Server=SERVIDOR;Database=AssetFlow;User Id=USUARIO;Password=CONTRASENA;Encrypt=True;TrustServerCertificate=False"
 export ASPNETCORE_URLS="https://+:5001"
 export ASPNETCORE_ENVIRONMENT="Production"
 ```
@@ -114,6 +114,58 @@ export ASPNETCORE_ENVIRONMENT="Production"
 
 - La base de datos no debe ser accesible desde Internet. Solo la API habla con
   ella.
+
+### Detrás de un proxy inverso
+
+Si la API va detrás de nginx, Apache, IIS o similar, **hay que declarar la
+dirección del proxy**:
+
+```bash
+export ASSETFLOW_ForwardedHeaders__KnownProxies__0="10.0.0.5"
+# Varios proxies: __1, __2, ...
+```
+
+No es opcional aunque todo parezca funcionar sin ello. ASP.NET Core sólo hace
+caso a las cabeceras `X-Forwarded-For` y `X-Forwarded-Proto` si vienen de una
+dirección en la que confía, y por defecto sólo confía en el bucle local. Con un
+proxy en otra máquina, esas cabeceras se descartan en silencio y la API ve
+**todas** las peticiones como si vinieran de la IP del proxy.
+
+La consecuencia es que el limitador del endpoint de acceso —que reparte por
+dirección de origen— deja de repartir: todos los clientes caen en la misma
+partición, y un solo atacante puede agotar el cupo de intentos de todo el
+mundo. Es un fallo silencioso, porque la aplicación sigue respondiendo
+correctamente hasta que alguien lo aprovecha.
+
+Si no hay ningún proxy delante, no configures nada: el valor por defecto (sólo
+bucle local) es el correcto en ese caso.
+
+### Desplegar en Render
+
+Render no tiene runtime nativo de .NET: el `Dockerfile` de la raíz del
+repositorio publica solo `AssetFlow.Api`. Al crear el **Web Service**:
+
+- **Runtime**: Docker (Render lo detecta solo al ver el `Dockerfile`).
+- Variables de entorno mínimas para que arranque:
+
+  ```bash
+  ASSETFLOW_Jwt__Key=<genera una clave con openssl rand -base64 48>
+  ASSETFLOW_Seed__AdminPassword=<contraseña del admin inicial>
+  ```
+
+- El plan gratuito no incluye disco persistente: con el proveedor por defecto
+  (`Sqlite`), la base de datos se reinicia en cada redeploy o reinicio del
+  servicio. Válido para una demo; para persistir datos entre sesiones hay que
+  añadir un disco de pago o cambiar a `SqlServer` con una base externa.
+- Render inyecta `RENDER=true` en el entorno, que el código usa para omitir
+  la redirección HTTPS de la aplicación: el borde de Render ya la hace antes
+  de reenviar la petición al contenedor, así que repetirla dentro provocaría
+  un bucle de redirección. No hay que configurar nada para esto.
+- `ForwardedHeaders:KnownProxies` se queda sin configurar: Render no publica
+  una IP fija de proxy, así que el limitador de peticiones por IP no podrá
+  repartir por origen real detrás de su borde. No es un problema para una
+  demo; si esto pasa a producción real, hay que revisar
+  [decisiones-tecnicas.md](decisiones-tecnicas.md).
 
 ## Cambiar de proveedor
 
@@ -214,7 +266,7 @@ export ASSETFLOW_Email__UseStartTls="true"
 export ASSETFLOW_Email__Username="USUARIO-SMTP"
 export ASSETFLOW_Email__Password="CONTRASENA-SMTP"
 export ASSETFLOW_Email__FromAddress="no-reply@tu-dominio.com"
-export ASSETFLOW_Email__FromName="Inventario"
+export ASSETFLOW_Email__FromName="AssetFlow Manager"
 ```
 
 Del envío se registra el destinatario y nada más.

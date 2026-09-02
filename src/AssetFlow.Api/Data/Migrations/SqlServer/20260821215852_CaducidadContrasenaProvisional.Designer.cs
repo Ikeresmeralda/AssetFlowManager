@@ -4,6 +4,7 @@ using AssetFlow.Api.Data.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AssetFlow.Api.Data.Migrations.SqlServer
 {
     [DbContext(typeof(SqlServerAssetFlowDbContext))]
-    partial class SqlServerAssetFlowDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260821215852_CaducidadContrasenaProvisional")]
+    partial class CaducidadContrasenaProvisional
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

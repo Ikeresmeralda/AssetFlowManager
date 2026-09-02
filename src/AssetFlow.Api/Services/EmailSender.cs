@@ -27,7 +27,7 @@ public sealed class EmailOptions
     [EmailAddress]
     public string FromAddress { get; set; } = "no-reply@inventario.local";
 
-    public string FromName { get; set; } = "Inventario";
+    public string FromName { get; set; } = "AssetFlow Manager";
 
     public bool EstaConfigurado => !string.IsNullOrWhiteSpace(SmtpHost);
 }
