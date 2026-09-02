@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/*.db
+src/AssetFlow.Desktop/
+tests/
+android/
+docs/
+.git/

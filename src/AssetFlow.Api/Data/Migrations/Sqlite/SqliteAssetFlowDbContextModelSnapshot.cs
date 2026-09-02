@@ -308,6 +308,9 @@ namespace AssetFlow.Api.Data.Migrations.Sqlite
                         .HasMaxLength(30)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("ProvisionalPasswordExpiresAt")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasMaxLength(20)

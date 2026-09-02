@@ -342,10 +342,12 @@ public class UsersController : ControllerBase
             return NotFound();
         }
 
-        string provisional = PasswordResetService.ContrasenaProvisional(usuario.Username);
+        string provisional = PasswordResetService.GenerarContrasenaProvisional();
 
         usuario.PasswordHash = _hasher.Hash(provisional);
         usuario.MustChangePassword = true;
+        usuario.ProvisionalPasswordExpiresAt =
+            DateTime.UtcNow.Add(PasswordResetService.ValidezProvisional);
 
         _auditor.Registrar(AuditActions.ContrasenaReiniciada, "User", id,
             $"Reinicio administrativo de la contraseña de «{usuario.Username}»");

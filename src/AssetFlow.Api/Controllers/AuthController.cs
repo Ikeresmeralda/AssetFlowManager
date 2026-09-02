@@ -88,7 +88,17 @@ public class AuthController : ControllerBase
         bool correcta = _hasher.Verify(
             peticion.Password, usuario?.PasswordHash ?? HashSenuelo);
 
-        if (usuario is null || !correcta || !usuario.IsActive)
+        // Una contrasena provisional caducada se rechaza igual que una
+        // incorrecta: la llave dictada por telefono tiene fecha de caducidad,
+        // y pasada esa fecha hay que pedir otra recuperacion. La respuesta no
+        // distingue el caso para no regalar informacion sobre la cuenta.
+        bool caducada = usuario is
+        {
+            MustChangePassword: true,
+            ProvisionalPasswordExpiresAt: { } limite
+        } && limite < DateTime.UtcNow;
+
+        if (usuario is null || !correcta || !usuario.IsActive || caducada)
         {
             bool bloqueada = _throttle.RegistrarFallo(peticion.Username);
 
@@ -330,22 +340,24 @@ public class AuthController : ControllerBase
         }
 
         // Rechazar que la nueva sea la provisional otra vez. Sin esto, el
-        // usuario puede "cambiarla" por la misma y dejar la cuenta abierta a
-        // cualquiera que conozca su nombre de usuario, que es justo lo que este
-        // flujo existe para impedir.
-        if (peticion.NewPassword == PasswordResetService.ContrasenaProvisional(usuario.Username))
+        // usuario puede "cambiarla" por la misma y quedarse con una contrasena
+        // que tambien conoce el administrador que la dicto, que es justo lo
+        // que este flujo existe para impedir. Se comprueba contra el hash
+        // vigente, que en este punto es siempre el de la provisional.
+        if (_hasher.Verify(peticion.NewPassword, usuario.PasswordHash))
         {
             return BadRequest(new ProblemDetails
             {
                 Title = "Contraseña no válida",
                 Detail = "No puedes quedarte con la contraseña provisional: " +
-                         "cualquiera puede deducirla de tu nombre de usuario.",
+                         "elige una distinta que sólo conozcas tú.",
                 Status = StatusCodes.Status400BadRequest
             });
         }
 
         usuario.PasswordHash = _hasher.Hash(peticion.NewPassword);
         usuario.MustChangePassword = false;
+        usuario.ProvisionalPasswordExpiresAt = null;
 
         _auditor.RegistrarComo(usuario.Id, usuario.Username,
             AuditActions.RecuperacionCompletada, "User", usuario.Id);

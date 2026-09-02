@@ -316,7 +316,7 @@ builder.Services.AddSwaggerGen(opciones =>
 {
     opciones.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Inventario API",
+        Title = "AssetFlow Manager API",
         Version = "v1",
         Description =
             "API de gestión de inventario y préstamos de material.\n\n" +
@@ -374,10 +374,49 @@ var app = builder.Build();
 // tiene que pasar por aqui.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
+// Cabeceras de un proxy inverso.
+//
+// Por defecto solo se confia en el bucle local, asi que detras de un proxy en
+// otra maquina las cabeceras se ignoran y RemoteIpAddress pasa a ser siempre
+// la del proxy. Eso no rompe nada de forma visible, pero convierte el
+// limitador de acceso por IP en uno global: todos los clientes caen en la
+// misma particion y basta un atacante para agotarle el cupo a los demas.
+//
+// Por eso las redes de confianza se declaran en la configuracion. Si no hay
+// ninguna, se mantiene el valor por defecto (solo bucle local), que es el
+// correcto cuando no hay proxy delante. Ver docs/configuration.md.
+var opcionesProxy = new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-});
+};
+
+string[] proxiesDeConfianza =
+    builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [];
+
+if (proxiesDeConfianza.Length > 0)
+{
+    // Se limpian los valores por defecto: declarar proxies concretos y dejar
+    // ademas el bucle local abierto seria confiar en mas de lo que se ha
+    // pedido.
+    opcionesProxy.KnownProxies.Clear();
+    opcionesProxy.KnownNetworks.Clear();
+
+    foreach (string proxy in proxiesDeConfianza)
+    {
+        if (System.Net.IPAddress.TryParse(proxy, out System.Net.IPAddress? direccion))
+        {
+            opcionesProxy.KnownProxies.Add(direccion);
+        }
+        else
+        {
+            throw new InvalidOperationException(
+                $"ForwardedHeaders:KnownProxies contiene «{proxy}», que no es una " +
+                "direccion IP valida.");
+        }
+    }
+}
+
+app.UseForwardedHeaders(opcionesProxy);
 
 if (app.Environment.IsDevelopment())
 {
@@ -386,8 +425,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(o =>
     {
-        o.SwaggerEndpoint("/swagger/v1/swagger.json", "Inventario API v1");
-        o.DocumentTitle = "Inventario API";
+        o.SwaggerEndpoint("/swagger/v1/swagger.json", "AssetFlow Manager API v1");
+        o.DocumentTitle = "AssetFlow Manager API";
     });
 }
 else
@@ -397,7 +436,18 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// Render (y PaaS similares) termina el TLS en su borde y ya redirige HTTP a
+// HTTPS antes de reenviar la peticion al contenedor por HTTP simple. Sin esta
+// excepcion, UseHttpsRedirection vería siempre esquema "http" y devolvería un
+// redirect a https que el borde vuelve a reenviar por http: bucle infinito.
+// RENDER es una variable que la plataforma inyecta ella misma, no algo que se
+// configure aqui.
+bool detrasDeRender = builder.Configuration["RENDER"] is not null;
+
+if (!detrasDeRender)
+{
+    app.UseHttpsRedirection();
+}
 
 // Cabeceras de seguridad. La API devuelve JSON, no HTML, asi que solo se
 // aplican las que tienen efecto real en ese contexto.
