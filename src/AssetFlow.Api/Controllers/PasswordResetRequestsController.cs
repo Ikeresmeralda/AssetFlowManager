@@ -141,15 +141,18 @@ public class PasswordResetRequestsController : ControllerBase
             });
         }
 
-        string provisional = PasswordResetService.ContrasenaProvisional(solicitud.User.Username);
+        string provisional = PasswordResetService.GenerarContrasenaProvisional();
 
         // Todo junto o nada: si esto no fuera atomico, un fallo a mitad podria
         // dejar la contrasena provisional puesta sin la marca de cambio
-        // obligatorio, es decir, una contrasena deducible y permanente.
+        // obligatorio, es decir, una contrasena permanente que ademas conoce
+        // el administrador que la dicto.
         await using var transaccion = await _db.Database.BeginTransactionAsync(ct);
 
         solicitud.User.PasswordHash = _hasher.Hash(provisional);
         solicitud.User.MustChangePassword = true;
+        solicitud.User.ProvisionalPasswordExpiresAt =
+            DateTime.UtcNow.Add(PasswordResetService.ValidezProvisional);
 
         solicitud.Status = PasswordResetRequestStatus.Approved;
         solicitud.ResolvedAt = DateTime.UtcNow;

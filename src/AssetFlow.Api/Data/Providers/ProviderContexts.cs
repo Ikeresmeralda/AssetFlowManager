@@ -61,7 +61,7 @@ public class SqlServerContextFactory : IDesignTimeDbContextFactory<SqlServerAsse
         // Solo se usa para generar migraciones: nunca se conecta de verdad,
         // asi que no hace falta una cadena real ni un secreto.
         constructor.UseSqlServer(
-            "Server=(localdb)\\mssqllocaldb;Database=Inventario;Trusted_Connection=True");
+            "Server=(localdb)\\mssqllocaldb;Database=AssetFlow;Trusted_Connection=True");
 
         return new SqlServerAssetFlowDbContext(constructor.Options);
     }

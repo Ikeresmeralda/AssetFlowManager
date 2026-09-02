@@ -47,16 +47,28 @@ public class User
     /// </summary>
     /// <remarks>
     /// Se activa cuando un administrador aprueba una recuperacion o reinicia
-    /// una contrasena. Es lo que hace aceptable que la contrasena provisional
-    /// sea predecible (<c>usuario + "123@"</c>): en cuanto se usa, deja de
-    /// valer. Sin este campo, esa contrasena seria permanente y derivable del
-    /// nombre de usuario, es decir, una via de acceso publica a la cuenta.
+    /// una contrasena. Mientras este puesto, la sesion que abre la provisional
+    /// no puede hacer nada salvo cambiarla; sin este campo, una contrasena que
+    /// conocen dos personas (quien la dicto y su titular) seguiria valiendo
+    /// indefinidamente.
     ///
     /// El token de acceso lleva el mismo dato como claim para que la
     /// comprobacion no cueste una consulta por peticion; ver
     /// <c>CambioObligatorioMiddleware</c>.
     /// </remarks>
     public bool MustChangePassword { get; set; }
+
+    /// <summary>
+    /// Instante en que la contrasena provisional deja de abrir sesion.
+    /// </summary>
+    /// <remarks>
+    /// Solo tiene valor mientras <see cref="MustChangePassword"/> este activo.
+    /// Pasado el plazo, el acceso con la provisional se rechaza igual que una
+    /// contrasena incorrecta y hay que pedir otra recuperacion: una llave
+    /// dictada por telefono no debe quedarse esperando semanas a que alguien
+    /// la use, sea quien sea ese alguien.
+    /// </remarks>
+    public DateTime? ProvisionalPasswordExpiresAt { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

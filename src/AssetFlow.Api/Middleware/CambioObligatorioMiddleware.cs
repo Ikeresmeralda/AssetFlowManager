@@ -8,10 +8,11 @@ namespace AssetFlow.Api.Middleware;
 /// cambian.
 /// </summary>
 /// <remarks>
-/// <b>Esta clase es lo que hace segura la contrasena provisional.</b> Sin ella,
-/// <c>usuario + "123@"</c> seria una contrasena permanente y deducible del
-/// nombre de usuario; con ella, es una llave de un solo uso que solo sirve para
-/// abrir la puerta de "elige tu contrasena".
+/// <b>Es la ultima de las tres capas que protegen la contrasena provisional</b>
+/// —las otras dos son que se genera al azar y que caduca a las 24 horas—. Sin
+/// ella, una contrasena que conocen dos personas (quien la dicto y su titular)
+/// se quedaria puesta indefinidamente; con ella, solo sirve para abrir la
+/// puerta de "elige tu contrasena".
 ///
 /// Va en un middleware y no en un filtro de MVC a proposito: un filtro solo
 /// cubre los controladores, y aqui interesa cubrir <em>todo</em> lo que cuelgue

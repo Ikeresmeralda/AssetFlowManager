@@ -35,21 +35,60 @@ public interface IPasswordResetService
 public sealed class PasswordResetService : IPasswordResetService
 {
     /// <summary>
-    /// Contrasena provisional que se asigna al aprobar una solicitud.
+    /// Genera la contrasena provisional que se asigna al aprobar una solicitud.
     /// </summary>
     /// <remarks>
-    /// Es predecible a proposito: el administrador tiene que poder decirsela a
-    /// la persona por telefono sin leer una cadena aleatoria.
+    /// Es aleatoria. Una version anterior la derivaba del nombre de usuario
+    /// (<c>usuario + "123@"</c>) para que el administrador pudiera dictarla
+    /// sin leer una cadena rara, confiando en que el cambio obligatorio la
+    /// convertia en una llave de un solo uso. El hueco de ese razonamiento es
+    /// que nada garantiza que el primer uso sea el del titular: el nombre de
+    /// usuario es visible para cualquier cuenta autenticada, y quien entrara
+    /// antes que el titular quedaria "obligado" a elegir la contrasena... que
+    /// es exactamente lo que quiere quien roba una cuenta.
     ///
-    /// <b>Eso solo es aceptable porque caduca en el primer uso.</b> La cuenta
-    /// queda marcada con <see cref="User.MustChangePassword"/> y no puede hacer
-    /// absolutamente nada hasta cambiarla. Si se quitara esa marca, esta
-    /// contrasena seria permanente y derivable del nombre de usuario, que
-    /// figura en la lista de usuarios: cualquiera podria entrar en cualquier
-    /// cuenta que hubiera pasado por una recuperacion, con un solo intento y
-    /// sin que saltara el limitador.
+    /// El formato esta pensado para dictarse por telefono, porque ese era el
+    /// requisito real detras del esquema derivable y sigue siendolo:
+    ///
+    /// - **Sin mayusculas.** Es lo que mas cuesta transmitir de viva voz: con
+    ///   mayusculas y minusculas mezcladas hay que decir "efe mayuscula, ge
+    ///   minuscula" letra por letra, y cualquier despiste deja a la persona
+    ///   fuera de su cuenta sin forma de recuperar la clave, que solo se
+    ///   muestra una vez.
+    /// - **Sin caracteres ambiguos** (l, i, 1, o, 0): se confunden al oido y
+    ///   al leerlos.
+    /// - **En tres grupos de cuatro separados por guion**, como una clave de
+    ///   licencia. Se lee y se teclea a trozos, y se ve de un vistazo si falta
+    ///   algo.
+    ///
+    /// Nada de esto debilita el resultado de forma apreciable: son 33 simbolos
+    /// posibles en 12 posiciones, unos 60 bits. Para una contrasena de un solo
+    /// uso, que caduca en 24 horas, esta limitada por el numero de intentos y
+    /// solo permite llegar al formulario de cambio, sobra por varios ordenes de
+    /// magnitud.
     /// </remarks>
-    public static string ContrasenaProvisional(string usuario) => $"{usuario}123@";
+    public static string GenerarContrasenaProvisional()
+    {
+        const string Alfabeto = "abcdefghjkmnpqrstuvwxyz23456789";
+
+        char[] sorteo = System.Security.Cryptography.RandomNumberGenerator
+            .GetItems<char>(Alfabeto, 12);
+
+        return string.Join('-',
+            new string(sorteo, 0, 4),
+            new string(sorteo, 4, 4),
+            new string(sorteo, 8, 4));
+    }
+
+    /// <summary>
+    /// Cuanto tiempo se puede entrar con una contrasena provisional.
+    /// </summary>
+    /// <remarks>
+    /// Pasado este plazo, la provisional deja de abrir sesion y hay que pedir
+    /// otra. Acota la ventana en la que una contrasena que conocen dos
+    /// personas (el administrador que la dicto y el titular) sigue viva.
+    /// </remarks>
+    public static readonly TimeSpan ValidezProvisional = TimeSpan.FromHours(24);
 
     /// <summary>
     /// Duracion minima de una solicitud, exista o no la cuenta.
@@ -204,8 +243,8 @@ public sealed class PasswordResetService : IPasswordResetService
             $"""
              Hola, {usuario.FirstName}:
 
-             La contraseña de tu cuenta de Inventario ({usuario.Username}) acaba de
-             cambiar: {motivo}.
+             La contraseña de tu cuenta de AssetFlow Manager ({usuario.Username})
+             acaba de cambiar: {motivo}.
 
              También se han cerrado todas las sesiones que tuvieras abiertas.
 
@@ -219,6 +258,6 @@ public sealed class PasswordResetService : IPasswordResetService
              """;
 
         _correo.Encolar(new EmailMessage(
-            usuario.Email, "Tu contraseña ha cambiado · Inventario", cuerpo));
+            usuario.Email, "Tu contraseña ha cambiado · AssetFlow Manager", cuerpo));
     }
 }
