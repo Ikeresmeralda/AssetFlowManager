@@ -49,6 +49,15 @@ Al ejecutar `dotnet run` en entorno de desarrollo, la API se apaña sola:
   el sistema de registro, para que no acabe en un archivo de log.
 - Siembra un inventario de ejemplo.
 
+`Seed:AdminPassword` no solo se lee en el primer arranque. En cada arranque
+posterior, si la cuenta admin ya existe y esta variable trae un valor que no
+coincide con la contraseña guardada, **la sustituye** (y revoca sus sesiones
+abiertas). Es lo que hace posible recuperar el acceso fijando aquí una
+contraseña conocida y reiniciando el servicio; también significa que dejar la
+variable puesta deshace, en el siguiente arranque, cualquier cambio de
+contraseña que el administrador haga desde la aplicación. Quítala una vez que
+hayas entrado.
+
 Para fijar valores estables en tu equipo, usa los secretos de usuario, que se
 guardan fuera del repositorio:
 

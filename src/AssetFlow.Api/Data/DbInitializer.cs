@@ -19,6 +19,13 @@ namespace AssetFlow.Api.Data;
 /// definido, en desarrollo se genera una aleatoria y se escribe en la consola
 /// una unica vez, y en produccion la aplicacion se niega a arrancar. En
 /// ningun caso existe una contrasena por defecto conocida.
+///
+/// Seed:AdminPassword tambien se comprueba en los arranques siguientes, no
+/// solo cuando la base de datos esta vacia. Sin esto, cambiar la variable de
+/// entorno en un servicio ya sembrado (por ejemplo, tras redesplegar en
+/// Render con el mismo disco) no tenia ningun efecto: el administrador se
+/// quedaba con la contrasena de la primera vez para siempre, y la variable
+/// pasaba a mentir sobre cual es la contrasena real.
 /// </remarks>
 public static class DbInitializer
 {
@@ -33,13 +40,15 @@ public static class DbInitializer
 
         await db.Database.MigrateAsync();
 
+        string usuario = config["Seed:AdminUsername"] ?? "admin";
+        string? clave = config["Seed:AdminPassword"];
+
         if (await db.Users.AnyAsync())
         {
+            await SincronizarClaveAdminAsync(db, hasher, log, usuario, clave);
             return;
         }
 
-        string usuario = config["Seed:AdminUsername"] ?? "admin";
-        string? clave = config["Seed:AdminPassword"];
         bool generada = false;
 
         if (string.IsNullOrWhiteSpace(clave))
@@ -89,6 +98,63 @@ public static class DbInitializer
         }
 
         log.LogInformation("Administrador inicial {Username} creado", usuario);
+    }
+
+    /// <summary>
+    /// Pone al dia la contrasena del administrador sembrado cuando ya existe
+    /// una cuenta con ese nombre de usuario y Seed:AdminPassword trae un valor
+    /// que no coincide con la actual.
+    /// </summary>
+    /// <remarks>
+    /// No toca nada si Seed:AdminPassword esta vacia (asi el operador puede
+    /// quitar la variable tras el primer arranque sin que eso borre la
+    /// contrasena que el administrador haya puesto desde la aplicacion) ni si
+    /// ya coincide con la que hay guardada, que es el caso normal en la
+    /// inmensa mayoria de arranques.
+    /// </remarks>
+    private static async Task SincronizarClaveAdminAsync(
+        AssetFlowDbContext db, IPasswordHasher hasher, ILogger log, string usuario, string? clave)
+    {
+        if (string.IsNullOrWhiteSpace(clave))
+        {
+            return;
+        }
+
+        User? admin = await db.Users.FirstOrDefaultAsync(u => u.Username == usuario);
+
+        if (admin is null)
+        {
+            log.LogWarning(
+                "Seed:AdminPassword esta definida pero no existe ninguna cuenta {Username}; se ignora",
+                usuario);
+            return;
+        }
+
+        if (hasher.Verify(clave, admin.PasswordHash))
+        {
+            return;
+        }
+
+        admin.PasswordHash = hasher.Hash(clave);
+        admin.MustChangePassword = false;
+        admin.ProvisionalPasswordExpiresAt = null;
+
+        // Igual que un reinicio de contrasena desde la aplicacion: una sesion
+        // abierta con la contrasena anterior no debe seguir siendo valida.
+        var vivos = await db.RefreshTokens
+            .Where(t => t.UserId == admin.Id && t.RevokedAt == null)
+            .ToListAsync();
+
+        foreach (var token in vivos)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+        }
+
+        await db.SaveChangesAsync();
+
+        log.LogWarning(
+            "Contrasena de {Username} actualizada al arrancar segun Seed:AdminPassword",
+            usuario);
     }
 
     private static string GenerarClave()
