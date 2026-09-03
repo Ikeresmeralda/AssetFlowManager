@@ -171,14 +171,29 @@ public static class DbInitializer
     {
         db.Materials.AddRange(
             new Material { Name = "Proyector Epson EB-S41", Type = "Audiovisual", Publisher = "Epson", TotalQuantity = 3, LowStockThreshold = 1 },
+            new Material { Name = "Pantalla de proyección 200\"", Type = "Audiovisual", TotalQuantity = 2, LowStockThreshold = 1 },
             new Material { Name = "Altavoz portátil JBL", Type = "Audiovisual", Publisher = "JBL", TotalQuantity = 6, LowStockThreshold = 2 },
+            new Material { Name = "Mesa de sonido Yamaha MG10", Type = "Audiovisual", Publisher = "Yamaha", TotalQuantity = 2, LowStockThreshold = 1 },
+            new Material { Name = "Micrófono inalámbrico", Type = "Audiovisual", Publisher = "Shure", TotalQuantity = 2, LowStockThreshold = 1 },
+            new Material { Name = "Máquina de humo", Type = "Audiovisual", TotalQuantity = 2, LowStockThreshold = 1 },
             new Material { Name = "Mesa plegable 180 cm", Type = "Mobiliario", TotalQuantity = 24, LowStockThreshold = 6 },
             new Material { Name = "Silla plegable", Type = "Mobiliario", TotalQuantity = 120, LowStockThreshold = 20 },
             new Material { Name = "Carpa 3x3 m", Type = "Mobiliario", TotalQuantity = 4, LowStockThreshold = 1 },
+            new Material { Name = "Tarima modular 1x1 m", Type = "Mobiliario", TotalQuantity = 20, LowStockThreshold = 5 },
+            new Material { Name = "Barra de bar plegable", Type = "Mobiliario", TotalQuantity = 3, LowStockThreshold = 1 },
+            new Material { Name = "Photocall con estructura", Type = "Mobiliario", TotalQuantity = 2, LowStockThreshold = 1 },
             new Material { Name = "Alargador 25 m", Type = "Electricidad", TotalQuantity = 8, LowStockThreshold = 3 },
             new Material { Name = "Foco LED 100 W", Type = "Electricidad", TotalQuantity = 5, LowStockThreshold = 2 },
-            new Material { Name = "Micrófono inalámbrico", Type = "Audiovisual", Publisher = "Shure", TotalQuantity = 2, LowStockThreshold = 1 },
+            new Material { Name = "Torre de iluminación LED", Type = "Electricidad", TotalQuantity = 3, LowStockThreshold = 1 },
+            new Material { Name = "Generador eléctrico 3 kW", Type = "Electricidad", TotalQuantity = 2, LowStockThreshold = 1 },
             new Material { Name = "Nevera portátil 40 l", Type = "Cocina", TotalQuantity = 3, LowStockThreshold = 1 },
-            new Material { Name = "Juego de petanca", Type = "Deporte", TotalQuantity = 10, LowStockThreshold = 3 });
+            new Material { Name = "Mesa de cátering", Type = "Cocina", TotalQuantity = 6, LowStockThreshold = 2 },
+            new Material { Name = "Grifo de barril de cerveza", Type = "Cocina", TotalQuantity = 4, LowStockThreshold = 1 },
+            new Material { Name = "Juego de petanca", Type = "Deporte", TotalQuantity = 10, LowStockThreshold = 3 },
+            new Material { Name = "Portería de fútbol sala", Type = "Deporte", TotalQuantity = 2, LowStockThreshold = 1 },
+            new Material { Name = "Red de voleibol", Type = "Deporte", TotalQuantity = 4, LowStockThreshold = 1 },
+            new Material { Name = "Extintor portátil", Type = "Seguridad", TotalQuantity = 8, LowStockThreshold = 2 },
+            new Material { Name = "Botiquín de primeros auxilios", Type = "Seguridad", TotalQuantity = 6, LowStockThreshold = 2 },
+            new Material { Name = "Valla de contención", Type = "Seguridad", TotalQuantity = 30, LowStockThreshold = 8 });
     }
 }
