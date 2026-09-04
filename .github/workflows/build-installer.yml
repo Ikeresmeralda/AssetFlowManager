@@ -1,0 +1,43 @@
+name: Build installer
+
+# Genera el ejecutable de escritorio y su instalador para poder descargarlos
+# sin necesidad de compilar en local. Requiere windows-latest porque la
+# solucion incluye un proyecto WPF (net8.0-windows), que no compila en otro
+# sistema; ver ci.yml para el mismo razonamiento aplicado a las pruebas.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # Los proyectos tienen como objetivo .NET 8, pero el formato de
+          # solucion .slnx no lo entiende el SDK 8: hace falta uno mas
+          # reciente para leerlo. Se instalan los dos y se compila contra
+          # net8.0.
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restaurar
+        run: dotnet restore AssetFlow.slnx
+
+      - name: Publicar la aplicacion (autocontenida, win-x64)
+        run: dotnet publish src/AssetFlow.Desktop/AssetFlow.Desktop.csproj -p:PublishProfile=win-x64 --configuration Release
+
+      - name: Compilar el instalador
+        # Inno Setup 6 viene preinstalado en el runner windows-latest.
+        run: ISCC.exe installer\AssetFlow.iss
+
+      - name: Subir el instalador
+        uses: actions/upload-artifact@v4
+        with:
+          name: AssetFlow-installer
+          path: installer/Output/*.exe
+          if-no-files-found: error
