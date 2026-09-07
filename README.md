@@ -258,7 +258,7 @@ compila el instalador. Se detiene si las pruebas fallan.
   contraseña ha cambiado. Sin SMTP configurado la aplicación funciona igual y
   ese aviso se escribe en el registro. Ver
   [docs/configuration.md](docs/configuration.md#correo-saliente).
-- El instalador (`installer/Inventario.iss`) está escrito y `tools/publicar.ps1`
+- El instalador (`installer/AssetFlow.iss`) está escrito y `tools/publicar.ps1`
   lo invoca, pero **nunca se ha compilado**: requiere Inno Setup 6 instalado.
   El guion detecta su ausencia, avisa y termina dejando la carpeta publicada
   lista.
