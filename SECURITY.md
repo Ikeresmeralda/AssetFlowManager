@@ -36,7 +36,8 @@ Entra dentro del alcance todo lo que esté en `src/`:
 
 Queda **fuera del alcance**:
 
-- `AndroidApp/` — no forma parte de esta versión y no ha sido revisado.
+- `android/` — cliente Android escrito pero nunca compilado. No forma parte
+  de esta versión y no ha sido revisado.
 - Despliegues configurados de forma insegura por quien los opera (por ejemplo,
   exponer la API por HTTP en Internet, o publicar la base de datos).
 

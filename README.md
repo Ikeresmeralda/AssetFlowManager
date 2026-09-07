@@ -3,8 +3,10 @@
 Gestión de inventario de material y préstamos para una asociación: qué hay,
 cuánto queda libre, quién se ha llevado qué y cuándo debería devolverlo.
 
-Cliente de **escritorio para Windows** y cliente **Android**, sobre una API
-común que es donde se toman todas las decisiones de seguridad.
+Cliente de **escritorio para Windows** sobre una API que es donde se toman
+todas las decisiones de seguridad. Hay además un cliente **Android** escrito
+contra esa misma API, todavía sin compilar; su estado está en
+[android/README.md](android/README.md).
 
 ![AssetFlow Manager](docs/screenshots/02-inventario.png)
 
@@ -26,9 +28,9 @@ común que es donde se toman todas las decisiones de seguridad.
   solicitud desde la pantalla de acceso y un administrador la aprueba dentro de
   la aplicación, con aviso en el menú. La respuesta al solicitante es idéntica
   exista o no la cuenta — idéntica también **en tiempo**, no sólo en contenido.
-  Al aprobar se asigna una contraseña provisional que **no sirve para nada
+  Al aprobar se sortea una contraseña provisional que **no sirve para nada
   hasta que su titular la cambia**: la sesión que abre está bloqueada para
-  todo lo demás.
+  todo lo demás, y caduca a las 24 horas.
 - **Cuentas y permisos.** Alta de personas, dos roles (administrador y usuario)
   y reinicio de contraseña, separado del resto de la edición porque tiene otras
   consecuencias.
@@ -80,7 +82,9 @@ Cuatro componentes:
   almacenamiento seguro del token. No contiene reglas de negocio.
 - **`AssetFlow.Desktop`** — interfaz WPF. No decide nada: pregunta y pinta.
 - **`android/`** — cliente Android en Kotlin y Jetpack Compose. Mismo principio
-  que el de escritorio: no decide nada.
+  que el de escritorio: no decide nada. **Escrito, no compilado**: se redactó
+  sin JDK ni SDK de Android, cotejando sus rutas y sus DTO contra los
+  controladores de la API. Ver [android/README.md](android/README.md).
 
 El cliente oculta las acciones que la cuenta no puede realizar, pero eso es
 comodidad de interfaz. **La API rechaza esas mismas operaciones aunque la
@@ -108,7 +112,7 @@ petición no venga del cliente.**
 | Token en reposo | DPAPI (`ProtectedData`) |
 | Pruebas | xUnit, FluentAssertions, `WebApplicationFactory` |
 | Instalador | Inno Setup 6 |
-| Android | Kotlin, Jetpack Compose, Retrofit, `EncryptedSharedPreferences` |
+| Android (sin compilar) | Kotlin, Jetpack Compose, Retrofit, `EncryptedSharedPreferences` |
 
 ## Seguridad
 
@@ -132,9 +136,11 @@ un fallo está en [SECURITY.md](SECURITY.md).
 - La recuperación de contraseña **no permite averiguar qué correos están dados
   de alta**: la respuesta es idéntica exista o no la cuenta, en contenido y en
   tiempo. Una cuenta no puede pedirla más de dos veces en media hora.
-- La contraseña provisional que se asigna al recuperar **es de un solo uso**:
-  la sesión que abre no puede leer ni escribir nada hasta cambiarla, y no se
-  puede «cambiar» por ella misma.
+- La contraseña provisional que se asigna al recuperar **es aleatoria y de un
+  solo uso**: la sesión que abre no puede leer ni escribir nada hasta
+  cambiarla, no se puede «cambiar» por ella misma y caduca a las 24 horas. El
+  formato (tres grupos de cuatro, sin mayúsculas ni caracteres ambiguos) está
+  pensado para dictarla por teléfono.
 - **No hay ningún secreto en el repositorio.** Ver
   [docs/configuration.md](docs/configuration.md) y
   [`.env.example`](.env.example).
@@ -210,7 +216,7 @@ dotnet ef database update --project src/AssetFlow.Api \
 dotnet test
 ```
 
-**131 pruebas de integración** que levantan la API completa —con su
+**145 pruebas de integración** que levantan la API completa —con su
 autenticación, autorización, limitador y manejo de errores— y hablan con ella
 por HTTP. No se sustituye ninguna de esas piezas por una versión de mentira,
 porque son justamente las que se quieren comprobar: un test que desactiva el
@@ -225,7 +231,7 @@ limitador para poder pasar no demuestra nada sobre el limitador.
 | Asignación masiva | que `userId` en el cuerpo no permita actuar en nombre de otro |
 | Flujo de préstamos | máquina de estados completa, doble aprobación, transiciones inválidas |
 | Reservas | que lo pendiente descuente de lo disponible y se libere al rechazar |
-| Recuperación | enumeración de cuentas por contenido **y por tiempo de respuesta**, que sólo un administrador pueda autorizar, que la contraseña provisional no sirva para nada hasta cambiarla, y que no pueda «cambiarse» por sí misma |
+| Recuperación | enumeración de cuentas por contenido **y por tiempo de respuesta**, que sólo un administrador pueda autorizar, que la contraseña provisional no sirva para nada hasta cambiarla, que no pueda «cambiarse» por sí misma, que dos reinicios no den la misma y que una caducada no abra sesión |
 | Auditoría | que registre autor y momento, que sea sólo de lectura y que no contenga secretos |
 | Datos sensibles | que ninguna respuesta contenga contraseñas, hashes ni sales |
 | Validación | entradas fuera de rango, vacías o con formato inválido |
@@ -259,8 +265,11 @@ compila el instalador. Se detiene si las pruebas fallan.
 - El paquete publicado ocupa unos 147 MB porque incluye el runtime de .NET. No
   se aplica recorte: WPF resuelve estilos y plantillas por reflexión y el
   recortador produce binarios que fallan en tiempo de ejecución.
-- El directorio `AndroidApp/` contiene un cliente Android que **queda fuera del
-  alcance de esta versión** y no se ha revisado.
+- El cliente Android de `android/` está **escrito pero nunca compilado**: se
+  redactó sin JDK ni SDK de Android. Sus rutas y sus DTO se cotejaron contra
+  los controladores de la API, pero es razonable esperar errores de
+  compilación la primera vez que se abra en Android Studio. Queda fuera del
+  alcance de esta versión.
 
 ## Licencia
 
