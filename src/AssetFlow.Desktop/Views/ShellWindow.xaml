@@ -4,7 +4,7 @@
         Title="AssetFlow Manager"
         Icon="/Assets/app.ico"
         Height="760" Width="1240"
-        MinHeight="560" MinWidth="900"
+        MinHeight="560" MinWidth="1100"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Canvas}"
         UseLayoutRounding="True"
@@ -21,6 +21,12 @@
         Se conserva la barra de titulo del sistema a proposito: la version
         anterior la dibujaba a mano y con ello perdia Aero Snap, el doble clic
         para maximizar y el redimensionado desde los bordes.
+
+        MinWidth es 1100 y no 900. Esta barra lateral ocupa 232 px fijos y la
+        tabla de inventario tiene nueve columnas que suman unos 940: con una
+        ventana de 900 px entraba todo, pero tan comprimido que las cabeceras
+        se leian "ESTAI" y "PROVE" y los botones de editar y eliminar caian
+        fuera del area visible. 1100 px cabe de sobra en un portatil de 1366.
     -->
 
     <Grid>

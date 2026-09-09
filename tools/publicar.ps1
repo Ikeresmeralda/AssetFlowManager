@@ -61,9 +61,14 @@ Write-Host "    Tamano: $tamano MB"
 # ---------------------------------------------------------------------------
 Paso 'Compilando el instalador'
 
+# Se buscan las tres rutas posibles. La de LOCALAPPDATA es la que usa la
+# instalacion por usuario, que es lo que hace `winget install
+# JRSoftware.InnoSetup` cuando no se ejecuta como administrador: sin ella el
+# guion daba por ausente un Inno Setup que estaba perfectamente instalado.
 $iscc = @(
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
-    "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
+    "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+    "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 
 if (-not $iscc) {

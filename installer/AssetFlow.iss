@@ -1,5 +1,5 @@
 ; ============================================================================
-;  INSTALADOR DE INVENTARIO
+;  INSTALADOR DE ASSETFLOW MANAGER
 ; ============================================================================
 ;  Compilar:  iscc installer\AssetFlow.iss
 ;  Requiere:  haber publicado antes la aplicacion:
@@ -26,7 +26,7 @@
 
 #define Nombre        "AssetFlow Manager"
 #define Version       "1.0.0"
-#define Autor         "Iker"
+#define Autor         "Iker Esmeralda"
 #define Ejecutable    "AssetFlow.exe"
 #define CarpetaOrigen "..\src\AssetFlow.Desktop\bin\publish\win-x64"
 

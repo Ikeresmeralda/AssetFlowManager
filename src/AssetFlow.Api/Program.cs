@@ -196,8 +196,7 @@ builder.Services
 //
 // Politica por defecto: exigir autenticacion en TODO. Un endpoint nuevo nace
 // protegido y hay que abrirlo a proposito con [AllowAnonymous]. Lo contrario
-// (proteger uno a uno) hace que el olvido se traduzca en un agujero, que es
-// exactamente lo que le pasaba a la version anterior de esta API.
+// (proteger uno a uno) hace que un olvido se traduzca en un agujero.
 // ---------------------------------------------------------------------------
 builder.Services.AddAuthorization(opciones =>
 {
@@ -444,7 +443,18 @@ else
 // configure aqui.
 bool detrasDeRender = builder.Configuration["RENDER"] is not null;
 
-if (!detrasDeRender)
+// Tampoco se redirige en desarrollo.
+//
+// El certificado de desarrollo de .NET solo lo reconoce la maquina que lo
+// genero. Con la redireccion activa, un cliente movil que apunte a
+// http://10.0.2.2:5171 -que es como el emulador de Android ve este equipo-
+// recibe un 307 hacia https://10.0.2.2:7015 y ahi falla la validacion del
+// certificado: la aplicacion no puede hablar con la API en local, que es
+// justo lo que hace falta para desarrollarla.
+//
+// En produccion la redireccion sigue activa y es imprescindible: las
+// credenciales viajan en el cuerpo de la peticion.
+if (!detrasDeRender && !app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
