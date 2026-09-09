@@ -1,0 +1,58 @@
+name: Build APK
+
+# Compila el cliente Android y sube el APK como artefacto, para poder
+# instalarlo sin necesidad de tener Android Studio ni el SDK en local. Es el
+# equivalente de build-installer.yml para el cliente de escritorio.
+#
+# Se compila la variante de depuracion porque es la unica que sale del runner
+# instalable: viene firmada con la clave de depuracion que genera el propio
+# SDK. Una release habria que firmarla con un almacen de claves propio, y ese
+# almacen no puede vivir en el repositorio.
+on:
+  push:
+    branches: [main, master, 'claude/**']
+    paths:
+      - 'android/**'
+      - '.github/workflows/build-apk.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Linux y no windows-latest como el resto de flujos: aqui no interviene el
+    # proyecto WPF, y el SDK de Android ya viene instalado en esta imagen.
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar el JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          # El plugin de Android 8.5 necesita 17 o superior; el modulo compila
+          # contra el nivel 17 (ver compileOptions en app/build.gradle.kts).
+          java-version: '17'
+
+      - name: Preparar el SDK de Android
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
+
+      - name: Preparar Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: android
+
+      - name: Compilar el APK de depuracion
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Subir el APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: AssetFlow-android-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

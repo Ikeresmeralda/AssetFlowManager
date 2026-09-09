@@ -12,3 +12,8 @@ captures/
 *.jks
 *.keystore
 google-services.json
+
+# El .gitignore de la raiz ignora [Dd]ebug/, que son carpetas de salida de
+# .NET. Aqui src/debug/ es lo contrario: codigo fuente de la variante de
+# depuracion, y tiene que versionarse.
+!app/src/debug/
