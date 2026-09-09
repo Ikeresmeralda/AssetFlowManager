@@ -4,19 +4,17 @@ namespace AssetFlow.Api.Entities;
 /// Articulo del inventario.
 /// </summary>
 /// <remarks>
-/// Antes se llamaba <c>AssociationMaterial</c> y el stock se manipulaba
-/// restando unidades a <c>TotalQuantity</c> desde un endpoint
-/// <c>ReduceQuantity</c>. Ese modelo tiene dos defectos graves:
+/// <see cref="TotalQuantity"/> es el numero de unidades que la entidad posee,
+/// un dato estable, y la disponibilidad se calcula restando los prestamos
+/// vivos. El inventario no puede descuadrarse porque no se edita al prestar.
+///
+/// La alternativa —restar unidades al stock cada vez que se presta— tiene dos
+/// defectos graves:
 ///
 /// 1. Pierde informacion: una vez restadas las unidades ya no se sabe cuantas
 ///    se poseen realmente, solo cuantas quedan.
 /// 2. Es corruptible: dos peticiones simultaneas, o una devolucion que nunca
 ///    se registra, dejan el numero descuadrado para siempre.
-///
-/// Ahora <see cref="TotalQuantity"/> es el numero de unidades que la entidad
-/// posee, un dato estable, y la disponibilidad se calcula restando los
-/// prestamos vivos. El inventario no puede descuadrarse porque no se edita
-/// al prestar.
 /// </remarks>
 public class Material
 {

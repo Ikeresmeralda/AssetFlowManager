@@ -4,10 +4,9 @@ namespace AssetFlow.Api.Entities;
 /// Linea de un prestamo: cuantas unidades de un articulo concreto.
 /// </summary>
 /// <remarks>
-/// Antes se llamaba <c>LoanDetail</c> y tenia su propio controlador CRUD
-/// publico, lo que permitia crear o borrar lineas sueltas sin pasar por el
-/// prestamo al que pertenecen y descuadrar el inventario. Ahora las lineas
-/// solo se manipulan a traves de su prestamo.
+/// Las lineas solo se manipulan a traves de su prestamo. Exponerlas en un
+/// controlador propio permitiria crear o borrar lineas sueltas sin pasar por
+/// el prestamo al que pertenecen, y descuadrar el inventario.
 /// </remarks>
 public class LoanLine
 {

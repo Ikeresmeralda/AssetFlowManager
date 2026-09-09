@@ -43,9 +43,9 @@ public class BCryptPasswordHasher : IPasswordHasher
         }
         catch (BCrypt.Net.SaltParseException)
         {
-            // Hash con formato invalido (por ejemplo, un registro heredado que
-            // todavia guardaba la contrasena en claro). Se trata como
-            // credencial incorrecta, nunca como coincidencia.
+            // Hash con formato invalido (una fila corrupta, o manipulada a
+            // mano en la base de datos). Se trata como credencial incorrecta,
+            // nunca como coincidencia.
             return false;
         }
     }

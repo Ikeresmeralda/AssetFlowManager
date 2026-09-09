@@ -550,8 +550,7 @@ public class LoansController : ControllerBase
     /// Devolucion directa, sin pasar por solicitud.
     /// </summary>
     /// <remarks>
-    /// Se conserva la ruta de la version anterior de la API porque hay clientes
-    /// que ya la usan. El comportamiento depende de quien llama, y no por
+    /// El comportamiento depende de quien llama, y no por
     /// comodidad sino porque es lo que significa la accion en cada caso: un
     /// administrador da por devuelto el material porque lo tiene delante, y un
     /// usuario solo puede pedir que se lo den por devuelto.

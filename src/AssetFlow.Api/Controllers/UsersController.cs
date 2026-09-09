@@ -13,11 +13,7 @@ namespace AssetFlow.Api.Controllers;
 /// Gestion de cuentas.
 /// </summary>
 /// <remarks>
-/// Este controlador sustituye al anterior, que exponia <c>GET /Users</c> sin
-/// autenticacion devolviendo la entidad completa con el hash de contrasena,
-/// y permitia darse de alta como administrador enviando <c>IsAdmin: 1</c>.
-///
-/// Reglas ahora:
+/// Reglas de acceso:
 /// - El listado completo y el alta son exclusivos de administradores.
 /// - Un usuario normal solo puede leer y editar su propia ficha.
 /// - El rol y el estado de la cuenta solo los cambia un administrador, y

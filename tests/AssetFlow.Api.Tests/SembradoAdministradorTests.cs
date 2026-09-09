@@ -13,8 +13,8 @@ namespace AssetFlow.Api.Tests;
 
 /// <summary>
 /// Comprueba el comportamiento de <see cref="DbInitializer"/> frente a
-/// arranques sucesivos sobre la misma base de datos: justo lo que ocurre en
-/// un redeploy con disco persistente, o simplemente al reiniciar el proceso.
+/// arranques sucesivos sobre la misma base de datos, que es lo que ocurre
+/// cada vez que se reinicia el servicio sin perder los datos.
 /// </summary>
 public class SembradoAdministradorTests
 {
@@ -31,9 +31,7 @@ public class SembradoAdministradorTests
             int token = await CrearRefreshTokenVivoAsync(archivoBd, antes.Id);
 
             // Segundo arranque: la base de datos ya tiene al administrador,
-            // pero la variable de entorno (aqui, la configuracion) trae una
-            // clave distinta, tal como pasa al cambiarla en el panel de Render
-            // y volver a desplegar.
+            // pero la configuracion trae una clave distinta.
             await ArrancarYSembrarAsync(archivoBd, "ClaveNueva-2026!");
 
             User despues = await ObtenerAdminAsync(archivoBd);

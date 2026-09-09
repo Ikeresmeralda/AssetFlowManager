@@ -23,7 +23,7 @@ public static partial class Log
     private static readonly object Candado = new();
 
     private static readonly string Archivo =
-        Path.Combine(RutasApp.CarpetaRegistro, "inventario.log");
+        Path.Combine(RutasApp.CarpetaRegistro, "assetflow.log");
 
     public static string RutaArchivo => Archivo;
 

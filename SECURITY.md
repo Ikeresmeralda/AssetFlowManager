@@ -73,15 +73,21 @@ de publicar el repositorio.
   límite de dos cada media hora, **en contenido y en tiempo**: hay un suelo de
   duración constante para que el camino de la cuenta existente no se pueda
   distinguir cronometrando.
-- **Contraseña provisional**: al aprobar una solicitud, la cuenta recibe
-  `usuario + "123@"`. **Es deliberadamente predecible y eso sólo es aceptable
-  porque caduca en el primer uso**: la cuenta queda marcada y no puede hacer
-  absolutamente nada —ni leer el inventario— hasta cambiarla. Tampoco puede
-  «cambiarla» por ella misma. Si esa marca se pudiera saltar, la contraseña
-  sería permanente y derivable del nombre de usuario, es decir, una vía de
-  acceso pública a cualquier cuenta que hubiera pasado por una recuperación.
-  El bloqueo lo aplica un middleware sobre un claim del token, con lista
-  blanca: un endpoint nuevo nace cerrado para esas sesiones.
+- **Contraseña provisional**: al aprobar una solicitud, la cuenta recibe una
+  contraseña **aleatoria** de 12 caracteres, generada con
+  `RandomNumberGenerator` y entregada sólo a quien autoriza. Lleva tres
+  cierres encima:
+  1. **No se deduce de ningún dato público.** Una versión anterior la derivaba
+     del nombre de usuario (`usuario + "123@"`) confiando en que el cambio
+     obligatorio la volvía inofensiva. No lo era: nada garantiza que quien la
+     use primero sea su titular, y quien se adelantara acababa eligiendo él la
+     contraseña definitiva.
+  2. **Caduca a las 24 horas.** Pasado el plazo, deja de abrir sesión y hay que
+     pedir otra recuperación.
+  3. **La sesión que abre no sirve para nada más que para sustituirla** —ni
+     siquiera para leer el inventario—, y tampoco puede «cambiarse» por ella
+     misma. El bloqueo lo aplica un middleware sobre un claim del token, con
+     lista blanca: un endpoint nuevo nace cerrado para esas sesiones.
 - **Nadie fija la contraseña de otro.** El administrador autoriza el reinicio
   pero no elige la contraseña definitiva; la escribe su titular al entrar. Una
   contraseña que conocen dos personas no identifica a ninguna de las dos.

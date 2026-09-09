@@ -7,10 +7,10 @@ namespace AssetFlow.Api.Data;
 /// Contexto de datos de la aplicacion.
 /// </summary>
 /// <remarks>
-/// A diferencia del contexto anterior, aqui NO hay <c>OnConfiguring</c> con
-/// una cadena de conexion escrita en el codigo. El proveedor y la cadena se
-/// inyectan desde la configuracion en <c>Program.cs</c>, que es el unico sitio
-/// que sabe si estamos sobre SQLite o SQL Server.
+/// Aqui NO hay <c>OnConfiguring</c> con una cadena de conexion escrita en el
+/// codigo. El proveedor y la cadena se inyectan desde la configuracion en
+/// <c>Program.cs</c>, que es el unico sitio que sabe si estamos sobre SQLite
+/// o SQL Server.
 ///
 /// Todas las marcas de tiempo son <c>DateTime</c> en UTC, no
 /// <c>DateTimeOffset</c>. El proveedor de SQLite persiste DateTimeOffset pero

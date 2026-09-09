@@ -4,11 +4,11 @@ namespace AssetFlow.Core.Http;
 /// Por que ha terminado una llamada a la API.
 /// </summary>
 /// <remarks>
-/// Este enum es la correccion de un defecto concreto de la version anterior:
-/// el cliente HTTP capturaba cualquier excepcion y devolvia null. Como null
-/// significaba a la vez "no encontrado", "servidor caido", "sin permiso" y
-/// "JSON invalido", la interfaz no podia distinguirlos, y el resultado
-/// visible era que con el servidor apagado el login respondia
+/// Distinguir por que ha fallado una llamada es imprescindible para la
+/// interfaz. Un cliente HTTP que captura cualquier excepcion y devuelve null
+/// hace que null signifique a la vez "no encontrado", "servidor caido", "sin
+/// permiso" y "JSON invalido": la interfaz no puede diferenciarlos, y el
+/// resultado visible es que con el servidor apagado el login responde
 /// "usuario o contrasena incorrectos".
 /// </remarks>
 public enum ApiStatus

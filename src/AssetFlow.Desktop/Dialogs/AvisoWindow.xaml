@@ -55,6 +55,45 @@
                            TextWrapping="Wrap"
                            Style="{StaticResource T.Muted}"
                            LineHeight="19"/>
+
+                <!--
+                    CREDENCIAL
+                    ==========
+                    Sólo visible cuando hay una contraseña que transmitir.
+
+                    Va en un cuadro seleccionable y monoespaciado, no dentro
+                    del texto del mensaje, por dos motivos: se muestra una
+                    única vez y no hay forma de volver a consultarla, así que
+                    tiene que poder copiarse sin transcribirla a mano; y en
+                    monoespaciada se distingue lo que en la fuente de la
+                    interfaz se confunde.
+                -->
+                <Border x:Name="PanelCredencial" Visibility="Collapsed"
+                        Margin="48,14,0,0" Padding="14,12"
+                        Background="{StaticResource SurfaceAlt}"
+                        BorderBrush="{StaticResource Border}" BorderThickness="1"
+                        CornerRadius="{StaticResource Radius.Sm}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="TxtCredencial"
+                                 Grid.Column="0"
+                                 IsReadOnly="True"
+                                 BorderThickness="0" Background="Transparent"
+                                 FontFamily="Consolas, Cascadia Mono, Courier New"
+                                 FontSize="16" FontWeight="SemiBold"
+                                 VerticalAlignment="Center"
+                                 Foreground="{StaticResource Text}"/>
+
+                        <Button x:Name="BtnCopiar" Grid.Column="1"
+                                Content="Copiar" MinWidth="82" Margin="10,0,0,0"
+                                Style="{StaticResource Btn.Secondary}"
+                                Click="AlCopiar"/>
+                    </Grid>
+                </Border>
             </StackPanel>
 
             <Border Grid.Row="1" Background="{StaticResource SurfaceAlt}"

@@ -2,11 +2,9 @@ namespace AssetFlow.Api.Entities;
 
 /// <summary>Estado de un prestamo.</summary>
 /// <remarks>
-/// Los valores numericos de <see cref="Active"/> y <see cref="Returned"/> se
-/// conservan de la version anterior del modelo para no tener que reescribir
-/// las filas existentes al migrar. Por eso los estados nuevos no siguen el
-/// orden logico del flujo: el orden de presentacion es cosa de la interfaz,
-/// no del numero que se guarda.
+/// Los valores numericos no siguen el orden logico del flujo: cambiarlos
+/// obligaria a reescribir las filas ya guardadas, y el orden de presentacion
+/// es cosa de la interfaz, no del numero que se persiste.
 /// </remarks>
 public enum LoanStatus
 {

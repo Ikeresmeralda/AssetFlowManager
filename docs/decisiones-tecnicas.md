@@ -135,22 +135,47 @@ enlace, ni correo en el camino crítico.
   explícitamente, y por eso queda registrado en la auditoría quién autorizó
   cada recuperación.
 
-### La contraseña provisional es predecible a propósito
+### La contraseña provisional: una decisión que hubo que revertir
 
-Al aprobar, la cuenta recibe `usuario + "123@"`. Es deducible por cualquiera que
-vea un nombre de usuario, y los nombres de usuario están a la vista en la lista
-de usuarios. Dicho así suena a defecto, y lo sería si fuera el final de la
-historia.
+La primera versión la derivaba del nombre de usuario: `usuario + "123@"`. El
+razonamiento era que el administrador tenía que poder dictarla por teléfono sin
+leer una cadena aleatoria, y que su predecibilidad quedaba neutralizada porque
+**caduca en el primer uso** — la cuenta queda marcada con `MustChangePassword` y
+un middleware bloquea todo lo demás.
 
-Lo que lo hace aceptable es que **caduca en el primer uso**. La cuenta queda
-marcada con `MustChangePassword` y un middleware bloquea todo lo demás:
+Ese razonamiento tenía un hueco, y conviene dejarlo escrito porque es más
+instructivo que la solución:
+
+> **Nada garantiza que el primer uso sea el del titular.**
+
+Los nombres de usuario están a la vista en `/api/users/summary` para cualquier
+cuenta autenticada. Con el esquema derivable, la cadena de ataque era:
+
+1. El atacante calcula `victima123@` desde el nombre de usuario.
+2. Espera —o provoca— una recuperación y entra **antes** que el titular. Un solo
+   intento, con la credencial correcta: el limitador no llega a saltar.
+3. El cambio obligatorio no lo frena. Lo deja **eligiendo él la contraseña
+   definitiva**, que es exactamente lo que busca quien roba una cuenta.
+
+El fallo del diseño original fue tratar «de un solo uso» como si equivaliera a
+«de un solo usuario». No son lo mismo.
+
+**Ahora la provisional es aleatoria** (12 caracteres, `RandomNumberGenerator`),
+con un alfabeto que evita los caracteres que se confunden al leerlos en voz alta
+(`l`, `I`, `1`, `O`, `0`), porque el requisito de poder dictarla seguía siendo
+real: lo que no era real es que hiciera falta sacrificar la impredecibilidad
+para cumplirlo. Además **caduca a las 24 horas**, para que una llave dictada por
+teléfono no se quede viva indefinidamente esperando a que alguien la use.
+
+El bloqueo de la sesión provisional sigue en pie, ahora como tercera capa y no
+como única defensa:
 
 ```
-POST /api/auth/login   { ana.lopez, ana.lopez123@ }  →  200  (mustChangePassword: true)
-GET  /api/materials                                  →  403
-GET  /api/loans                                      →  403
-POST /api/loans                                      →  403
-GET  /api/auth/me                                    →  200   ← una de las 4 permitidas
+POST /api/auth/login   { ana.lopez, 7kRm2xQpBn4T }  →  200  (mustChangePassword: true)
+GET  /api/materials                                 →  403
+GET  /api/loans                                     →  403
+POST /api/loans                                     →  403
+GET  /api/auth/me                                   →  200   ← una de las 4 permitidas
 ```
 
 Esa sesión sólo llega a cuatro rutas: cambiar la contraseña, consultar su propia
@@ -162,7 +187,9 @@ Tres detalles que sostienen el resto:
 
 - **No se puede «cambiar» por sí misma.** Sin esa comprobación, el formulario
   obligatorio se pasa dejando la misma contraseña y la cuenta se queda con una
-  clave pública. Es la vuelta exacta al agujero que este diseño evita.
+  clave que también conoce quien la dictó. Se comprueba verificando la nueva
+  contra el hash vigente, no comparando cadenas: con la provisional ya aleatoria
+  no hay ninguna fórmula que reproducir.
 - **El cambio devuelve una sesión nueva.** El bloqueo viaja en un claim del
   token para no costar una consulta por petición; la contrapartida es que el
   token viejo sigue diciendo que el cambio está pendiente, así que hay que

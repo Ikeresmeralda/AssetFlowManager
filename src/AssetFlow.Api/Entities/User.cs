@@ -4,16 +4,17 @@ namespace AssetFlow.Api.Entities;
 /// Cuenta de usuario del sistema.
 /// </summary>
 /// <remarks>
-/// Cambios respecto al modelo heredado:
+/// Tres decisiones de modelado que conviene tener presentes:
 ///
-/// - <c>Password</c> pasa a llamarse <see cref="PasswordHash"/>. El nombre
-///   importa: deja claro en el punto de uso que ahi nunca va una contrasena.
-/// - <c>IsAdmin int?</c> se sustituye por <see cref="Role"/>. Un entero
-///   anulable con tres estados posibles (0, 1, null) para representar dos
-///   roles era una fuente de errores silenciosos.
-/// - Se elimina el campo DNI. Un sistema de prestamo de material no necesita
-///   el documento de identidad para funcionar, y almacenarlo obliga a
-///   protegerlo sin obtener nada a cambio (minimizacion de datos).
+/// - El campo se llama <see cref="PasswordHash"/> y no <c>Password</c>. El
+///   nombre importa: deja claro en el punto de uso que ahi nunca va una
+///   contrasena.
+/// - El rol es una cadena (<see cref="Role"/>) y no un entero anulable. Un
+///   <c>int?</c> con tres estados posibles (0, 1, null) para representar dos
+///   roles es una fuente de errores silenciosos.
+/// - No se guarda el DNI. Un sistema de prestamo de material no necesita el
+///   documento de identidad para funcionar, y almacenarlo obliga a protegerlo
+///   sin obtener nada a cambio (minimizacion de datos).
 /// </remarks>
 public class User
 {

@@ -20,12 +20,12 @@ namespace AssetFlow.Api.Data;
 /// una unica vez, y en produccion la aplicacion se niega a arrancar. En
 /// ningun caso existe una contrasena por defecto conocida.
 ///
-/// Seed:AdminPassword tambien se comprueba en los arranques siguientes, no
-/// solo cuando la base de datos esta vacia. Sin esto, cambiar la variable de
-/// entorno en un servicio ya sembrado (por ejemplo, tras redesplegar en
-/// Render con el mismo disco) no tenia ningun efecto: el administrador se
-/// quedaba con la contrasena de la primera vez para siempre, y la variable
-/// pasaba a mentir sobre cual es la contrasena real.
+/// Seed:AdminPassword se comprueba en todos los arranques, no solo cuando la
+/// base de datos esta vacia. De lo contrario, cambiar la variable en un
+/// servicio ya sembrado no tendria ningun efecto: el administrador se quedaria
+/// con la contrasena de la primera vez para siempre y la variable pasaria a
+/// mentir sobre cual es la contrasena real. Es tambien la via para recuperar
+/// el acceso si se pierde.
 /// </remarks>
 public static class DbInitializer
 {

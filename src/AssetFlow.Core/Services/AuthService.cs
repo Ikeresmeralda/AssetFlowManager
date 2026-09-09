@@ -12,8 +12,8 @@ namespace AssetFlow.Core.Services;
 /// <remarks>
 /// Toda la logica de credenciales vive en el servidor. Este servicio solo
 /// transporta: envia usuario y contrasena, y guarda lo que devuelve. El
-/// cliente ya no descarga usuarios, no compara hashes y no decide si alguien
-/// entra, que era el defecto de fondo de la version anterior.
+/// cliente no descarga usuarios, no compara hashes y no decide si alguien
+/// entra.
 /// </remarks>
 public sealed class AuthService
 {

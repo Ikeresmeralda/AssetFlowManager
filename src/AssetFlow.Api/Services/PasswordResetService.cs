@@ -38,17 +38,18 @@ public sealed class PasswordResetService : IPasswordResetService
     /// Genera la contrasena provisional que se asigna al aprobar una solicitud.
     /// </summary>
     /// <remarks>
-    /// Es aleatoria. Una version anterior la derivaba del nombre de usuario
-    /// (<c>usuario + "123@"</c>) para que el administrador pudiera dictarla
-    /// sin leer una cadena rara, confiando en que el cambio obligatorio la
-    /// convertia en una llave de un solo uso. El hueco de ese razonamiento es
-    /// que nada garantiza que el primer uso sea el del titular: el nombre de
-    /// usuario es visible para cualquier cuenta autenticada, y quien entrara
-    /// antes que el titular quedaria "obligado" a elegir la contrasena... que
-    /// es exactamente lo que quiere quien roba una cuenta.
+    /// Es aleatoria, y no derivada del nombre de usuario (<c>usuario + "123@"</c>
+    /// y variantes), que es el atajo habitual para que el administrador pueda
+    /// dictarla sin leer una cadena rara, confiando en que el cambio
+    /// obligatorio la convierte en una llave de un solo uso. El hueco de ese
+    /// razonamiento es que nada garantiza que el primer uso sea el del
+    /// titular: el nombre de usuario es visible para cualquier cuenta
+    /// autenticada, y quien entrara antes que el titular quedaria "obligado" a
+    /// elegir la contrasena... que es exactamente lo que quiere quien roba una
+    /// cuenta.
     ///
-    /// El formato esta pensado para dictarse por telefono, porque ese era el
-    /// requisito real detras del esquema derivable y sigue siendolo:
+    /// El formato esta pensado para dictarse por telefono, que es el requisito
+    /// real detras de ese atajo:
     ///
     /// - **Sin mayusculas.** Es lo que mas cuesta transmitir de viva voz: con
     ///   mayusculas y minusculas mezcladas hay que decir "efe mayuscula, ge

@@ -14,14 +14,15 @@ namespace AssetFlow.Api.Tests;
 /// </summary>
 /// <remarks>
 /// El flujo completo: la persona deja una solicitud, un administrador la
-/// aprueba, la cuenta recibe una contrasena provisional predecible y no puede
+/// aprueba, la cuenta recibe una contrasena provisional aleatoria y no puede
 /// hacer nada hasta cambiarla.
 ///
-/// El grueso de esta clase vigila esa ultima parte. La contrasena provisional
-/// es <c>usuario + "123@"</c>, deducible por cualquiera que vea un nombre de
-/// usuario; lo unico que impide que eso sea una via de acceso publica es que
-/// caduque en el primer uso. Si alguna de estas comprobaciones deja de pasar,
-/// la aplicacion tiene un agujero de autenticacion, no un fallo de comodidad.
+/// El grueso de esta clase vigila esa ultima parte. La provisional la conocen
+/// dos personas —quien la dicta y su titular— y por eso lleva tres cierres
+/// encima: no se deduce de ningun dato publico, caduca a las 24 horas, y la
+/// sesion que abre no sirve para nada salvo para sustituirla. Si alguna de
+/// estas comprobaciones deja de pasar, la aplicacion tiene un agujero de
+/// autenticacion, no un fallo de comodidad.
 /// </remarks>
 public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 {
@@ -291,8 +292,8 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
             (await Acceder(entorno, UsuarioVictima, ApiFactory.ClaveDePrueba))
                 .StatusCode.Should().Be(HttpStatusCode.OK);
 
-            // Y la provisional no.
-            (await Acceder(entorno, UsuarioVictima, Provisional(UsuarioVictima)))
+            // Y no se ha puesto ninguna provisional.
+            (await Acceder(entorno, UsuarioVictima, ProvisionalDerivable(UsuarioVictima)))
                 .StatusCode.Should().Be(HttpStatusCode.Unauthorized);
         }
         finally
@@ -327,7 +328,11 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
             var datos = await aprobacion.Content.ReadFromJsonAsync<AprobacionDePrueba>();
 
-            datos!.ContrasenaProvisional.Should().Be(Provisional(UsuarioVictima));
+            // La provisional se entrega al administrador y sirve para entrar.
+            datos!.ContrasenaProvisional.Should().NotBeNullOrWhiteSpace();
+
+            (await Acceder(entorno, UsuarioVictima, datos.ContrasenaProvisional))
+                .StatusCode.Should().Be(HttpStatusCode.OK);
 
             // La anterior deja de valer.
             (await Acceder(entorno, UsuarioVictima, ApiFactory.ClaveDePrueba))
@@ -345,13 +350,164 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
     }
 
     /// <summary>
+    /// La provisional no se puede deducir del nombre de usuario.
+    /// </summary>
+    /// <remarks>
+    /// Es la regresión que motivó el cambio. Con el esquema anterior
+    /// (<c>usuario + "123@"</c>) cualquiera que viese un nombre de usuario
+    /// —visible en <c>/api/users/summary</c> para cualquier cuenta— podía
+    /// calcular la contraseña y adelantarse al titular. Entrar primero no lo
+    /// frenaba el cambio obligatorio: lo dejaba eligiendo él la definitiva.
+    /// </remarks>
+    [Fact]
+    public async Task La_provisional_no_se_deduce_del_nombre_de_usuario()
+    {
+        var entorno = new EntornoConCorreo();
+        await entorno.InitializeAsync();
+
+        try
+        {
+            string provisional = await AprobarAsync(entorno);
+
+            provisional.Should().NotBe(ProvisionalDerivable(UsuarioVictima));
+            provisional.Should().NotContain(UsuarioVictima);
+
+            // Y el esquema retirado no abre la cuenta.
+            (await Acceder(entorno, UsuarioVictima, ProvisionalDerivable(UsuarioVictima)))
+                .StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
+        finally
+        {
+            await entorno.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// La provisional se puede dictar por teléfono.
+    /// </summary>
+    /// <remarks>
+    /// No es una comprobación cosmética. La contraseña se muestra **una sola
+    /// vez** y quien la recibe la transmite de viva voz: si lleva mayúsculas
+    /// mezcladas hay que ir diciendo «efe mayúscula, ge minúscula» letra por
+    /// letra, y un despiste deja a su titular fuera de la cuenta sin forma de
+    /// recuperarla.
+    ///
+    /// Ese requisito es el que justificaba el esquema derivable original. Al
+    /// sustituirlo por azar hubo que reponerlo por otra vía en lugar de
+    /// darlo por perdido.
+    /// </remarks>
+    [Fact]
+    public async Task La_provisional_se_puede_dictar_en_voz_alta()
+    {
+        var entorno = new EntornoConCorreo();
+        await entorno.InitializeAsync();
+
+        try
+        {
+            string provisional = await AprobarAsync(entorno);
+
+            // Tres grupos de cuatro: se lee y se teclea a trozos.
+            provisional.Should().MatchRegex("^[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$");
+
+            // Sin caracteres que se confundan al oído o a la vista.
+            provisional.Should().NotContainAny("l", "i", "o", "1", "0");
+
+            // Y sigue abriendo sesión, que es lo que tiene que hacer.
+            (await Acceder(entorno, UsuarioVictima, provisional))
+                .StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+        finally
+        {
+            await entorno.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Dos recuperaciones seguidas no producen la misma contraseña.
+    /// </summary>
+    /// <remarks>
+    /// Si se repitiera, quien hubiera pasado una vez por el flujo conocería la
+    /// provisional de todas las veces siguientes, que es el mismo problema con
+    /// otra forma.
+    /// </remarks>
+    [Fact]
+    public async Task Dos_recuperaciones_dan_contrasenas_distintas()
+    {
+        var entorno = new EntornoConCorreo();
+        await entorno.InitializeAsync();
+
+        try
+        {
+            string primera = await AprobarAsync(entorno);
+
+            // Cambiarla deja la cuenta lista para volver a pedir recuperación.
+            var sesion = await AccederYLeer(entorno, UsuarioVictima, primera);
+
+            (await entorno.ClienteCon(sesion.AccessToken).PostAsJsonAsync(
+                "/api/auth/change-password",
+                new { currentPassword = primera, newPassword = "OtraCualquiera2026!" }))
+                .EnsureSuccessStatusCode();
+
+            string segunda = await AprobarAsync(entorno);
+
+            segunda.Should().NotBe(primera);
+        }
+        finally
+        {
+            await entorno.DisposeAsync();
+        }
+    }
+
+    /// <summary>
+    /// Pasado el plazo, la provisional deja de abrir sesión.
+    /// </summary>
+    /// <remarks>
+    /// La caducidad se fuerza en la base de datos en lugar de esperar 24 horas.
+    /// Sin este corte, una contraseña dictada por teléfono seguiría viva
+    /// indefinidamente esperando a que alguien —cualquiera— la usara.
+    /// </remarks>
+    [Fact]
+    public async Task La_provisional_caducada_no_abre_sesion()
+    {
+        var entorno = new EntornoConCorreo();
+        await entorno.InitializeAsync();
+
+        try
+        {
+            string provisional = await AprobarAsync(entorno);
+
+            // Antes de caducar, entra.
+            (await Acceder(entorno, UsuarioVictima, provisional))
+                .StatusCode.Should().Be(HttpStatusCode.OK);
+
+            using (IServiceScope ambito = entorno.Services.CreateScope())
+            {
+                var db = ambito.ServiceProvider.GetRequiredService<AssetFlowDbContext>();
+
+                User cuenta = await db.Users.FirstAsync(u => u.Username == UsuarioVictima);
+
+                cuenta.ProvisionalPasswordExpiresAt = DateTime.UtcNow.AddMinutes(-1);
+
+                await db.SaveChangesAsync();
+            }
+
+            (await Acceder(entorno, UsuarioVictima, provisional))
+                .StatusCode.Should().Be(HttpStatusCode.Unauthorized,
+                    "una contraseña provisional caducada no debe abrir sesión");
+        }
+        finally
+        {
+            await entorno.DisposeAsync();
+        }
+    }
+
+    /// <summary>
     /// Con la provisional se entra, pero no se puede hacer absolutamente nada.
     /// </summary>
     /// <remarks>
-    /// <b>Es el test que sostiene todo el diseno.</b> La contrasena provisional
-    /// es publica de hecho: cualquiera que vea el nombre de usuario la deduce.
-    /// Que eso no sea un agujero depende por completo de que la sesion que abre
-    /// no sirva para nada mas que para cambiarla.
+    /// <b>Es el test que sostiene todo el diseno.</b> La provisional la conoce
+    /// tambien el administrador que la dicto, asi que la sesion que abre no
+    /// puede servir para nada mas que para sustituirla.
     /// </remarks>
     [Theory]
     [InlineData("/api/materials")]
@@ -366,7 +522,7 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         try
         {
-            HttpClient cliente = await AprobarYAccederAsync(entorno);
+            (_, HttpClient cliente) = await AprobarYAccederAsync(entorno);
 
             HttpResponseMessage respuesta = await cliente.GetAsync(ruta);
 
@@ -387,7 +543,7 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         try
         {
-            HttpClient cliente = await AprobarYAccederAsync(entorno);
+            (_, HttpClient cliente) = await AprobarYAccederAsync(entorno);
 
             // Un GET bloqueado no demuestra que lo esten los POST: son ramas
             // distintas del enrutado.
@@ -413,13 +569,13 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         try
         {
-            HttpClient cliente = await AprobarYAccederAsync(entorno);
+            (string provisional, HttpClient cliente) = await AprobarYAccederAsync(entorno);
 
             HttpResponseMessage cambio = await cliente.PostAsJsonAsync(
                 "/api/auth/change-password",
                 new
                 {
-                    currentPassword = Provisional(UsuarioVictima),
+                    currentPassword = provisional,
                     newPassword = "MiClavePropia2026!"
                 });
 
@@ -450,8 +606,8 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
     /// </summary>
     /// <remarks>
     /// Sin esta comprobacion, el formulario obligatorio se puede pasar dejando
-    /// la misma contrasena, y la cuenta se queda con una clave deducible del
-    /// nombre de usuario. Es decir, el agujero que todo este flujo evita.
+    /// la misma contrasena, y la cuenta se queda con una clave que tambien
+    /// conoce quien la dicto. Es decir, el agujero que todo este flujo evita.
     /// </remarks>
     [Fact]
     public async Task No_se_puede_quedar_con_la_provisional()
@@ -461,8 +617,7 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         try
         {
-            HttpClient cliente = await AprobarYAccederAsync(entorno);
-            string provisional = Provisional(UsuarioVictima);
+            (string provisional, HttpClient cliente) = await AprobarYAccederAsync(entorno);
 
             HttpResponseMessage cambio = await cliente.PostAsJsonAsync(
                 "/api/auth/change-password",
@@ -488,7 +643,7 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         try
         {
-            HttpClient cliente = await AprobarYAccederAsync(entorno);
+            (_, HttpClient cliente) = await AprobarYAccederAsync(entorno);
 
             HttpResponseMessage cambio = await cliente.PostAsJsonAsync(
                 "/api/auth/change-password",
@@ -556,9 +711,14 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
             var datos = await reinicio.Content.ReadFromJsonAsync<AprobacionDePrueba>();
 
-            datos!.ContrasenaProvisional.Should().Be(Provisional(UsuarioVictima));
+            datos!.ContrasenaProvisional.Should().NotBeNullOrWhiteSpace();
 
-            var sesion = await AccederYLeer(entorno, UsuarioVictima, Provisional(UsuarioVictima));
+            // El reinicio administrativo usa el mismo generador aleatorio que
+            // la aprobacion: no hay un atajo mas debil por esta via.
+            datos.ContrasenaProvisional.Should().NotBe(ProvisionalDerivable(UsuarioVictima));
+
+            var sesion = await AccederYLeer(
+                entorno, UsuarioVictima, datos.ContrasenaProvisional);
 
             sesion.User.MustChangePassword.Should().BeTrue();
 
@@ -579,10 +739,7 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         try
         {
-            int id = await CrearSolicitudAsync(entorno);
-            HttpClient admin = await entorno.ClienteAdminAsync();
-
-            await admin.PostAsync($"/api/password-reset-requests/{id}/approve", null);
+            string provisional = await AprobarAsync(entorno);
 
             // Sin este aviso, un robo de cuenta es silencioso para el titular.
             var aviso = await entorno.Buzon.EsperarAsync(
@@ -594,7 +751,7 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
             // El aviso no puede llevar la contrasena ni un enlace: un enlace en
             // un correo es justo lo que usaria quien acaba de robar la cuenta.
-            aviso.Value.Cuerpo.Should().NotContain(Provisional(UsuarioVictima));
+            aviso.Value.Cuerpo.Should().NotContain(provisional);
             aviso.Value.Cuerpo.Should().NotContain("http://");
             aviso.Value.Cuerpo.Should().NotContain("https://");
         }
@@ -642,12 +799,17 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
     // AUXILIARES
     // ========================================================================
 
-    /// <summary>La misma regla que aplica el servidor, escrita aparte a propósito.</summary>
+    /// <summary>
+    /// La contraseña que tendría la cuenta con el esquema derivable que se
+    /// retiró.
+    /// </summary>
     /// <remarks>
-    /// Si el test la calculara llamando al código de producción, los dos
-    /// podrían cambiar a la vez y el test seguiría en verde sin comprobar nada.
+    /// Se conserva escrita a mano, y sólo para comprobar que **ya no vale**.
+    /// Es la regresión concreta que se quiere impedir: mientras la provisional
+    /// se derivaba del nombre de usuario, cualquiera podía calcularla y
+    /// adelantarse al titular.
     /// </remarks>
-    private static string Provisional(string usuario) => usuario + "123@";
+    private static string ProvisionalDerivable(string usuario) => usuario + "123@";
 
     private Task<HttpResponseMessage> Solicitar(string correo) =>
         _api.Cliente().PostAsJsonAsync("/api/auth/forgot-password", new { email = correo });
@@ -685,8 +847,30 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
         return solicitud.Id;
     }
 
-    /// <summary>Aprueba una solicitud y devuelve un cliente con la sesión provisional.</summary>
-    private static async Task<HttpClient> AprobarYAccederAsync(EntornoConCorreo entorno)
+    /// <summary>
+    /// Aprueba una solicitud y devuelve la contraseña provisional junto con un
+    /// cliente ya autenticado con ella.
+    /// </summary>
+    /// <remarks>
+    /// La provisional se toma de la respuesta de la API porque es aleatoria:
+    /// ya no hay ninguna forma de calcularla desde fuera, que es justamente lo
+    /// que se buscaba.
+    /// </remarks>
+    private static async Task<(string Provisional, HttpClient Cliente)> AprobarYAccederAsync(
+        EntornoConCorreo entorno)
+    {
+        string provisional = await AprobarAsync(entorno);
+
+        var sesion = await AccederYLeer(entorno, UsuarioVictima, provisional);
+
+        sesion.User.MustChangePassword.Should().BeTrue(
+            "entrar con la provisional debe marcar la sesión como pendiente de cambio");
+
+        return (provisional, entorno.ClienteCon(sesion.AccessToken));
+    }
+
+    /// <summary>Aprueba una solicitud y devuelve la contraseña provisional emitida.</summary>
+    private static async Task<string> AprobarAsync(EntornoConCorreo entorno)
     {
         int id = await CrearSolicitudAsync(entorno);
 
@@ -697,12 +881,9 @@ public class RecuperacionTests : IClassFixture<EntornoConCorreo>
 
         aprobacion.EnsureSuccessStatusCode();
 
-        var sesion = await AccederYLeer(entorno, UsuarioVictima, Provisional(UsuarioVictima));
+        var datos = await aprobacion.Content.ReadFromJsonAsync<AprobacionDePrueba>();
 
-        sesion.User.MustChangePassword.Should().BeTrue(
-            "entrar con la provisional debe marcar la sesión como pendiente de cambio");
-
-        return entorno.ClienteCon(sesion.AccessToken);
+        return datos!.ContrasenaProvisional;
     }
 
     private static async Task<AuthResponseDePrueba> AbrirSesionAsync(EntornoConCorreo entorno) =>

@@ -13,14 +13,15 @@ namespace AssetFlow.Api.Controllers;
 /// Bandeja de solicitudes de recuperacion de contrasena. Solo administradores.
 /// </summary>
 /// <remarks>
-/// Sustituye al codigo enviado por correo: quien olvida su contrasena deja una
-/// solicitud y un administrador la autoriza desde la propia aplicacion.
+/// Quien olvida su contrasena deja una solicitud y un administrador la
+/// autoriza desde la propia aplicacion, sin ningun codigo enviado por correo.
 ///
-/// La decision es de una persona, y eso traslada una responsabilidad que antes
-/// era del sistema: antes, quien recuperaba la cuenta demostraba tener acceso
-/// al buzon registrado; ahora tiene que ser el administrador quien confirme,
-/// por un canal aparte, que quien pide el cambio es quien dice ser. Aprobar sin
-/// comprobarlo es entregar la cuenta.
+/// La decision es de una persona, y eso traslada al administrador una
+/// responsabilidad que en un envio por correo recae en el sistema: alli quien
+/// recupera la cuenta demuestra tener acceso al buzon registrado; aqui tiene
+/// que ser el administrador quien confirme, por un canal aparte, que quien
+/// pide el cambio es quien dice ser. Aprobar sin comprobarlo es entregar la
+/// cuenta.
 /// </remarks>
 [ApiController]
 [Route("api/password-reset-requests")]

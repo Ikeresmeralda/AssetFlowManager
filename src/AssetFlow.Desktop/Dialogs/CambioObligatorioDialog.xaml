@@ -15,10 +15,10 @@
         Se abre nada más entrar con una contraseña provisional, y no se puede
         cerrar sin cambiarla: el único botón de salida cierra la sesión.
 
-        Por qué es obligatorio: la contraseña provisional es «usuario + 123@»,
-        deducible por cualquiera que vea el nombre de usuario. Eso solo es
-        aceptable porque caduca en el primer uso. Si esta ventana se pudiera
-        saltar, esa contraseña sería permanente y la cuenta quedaría abierta.
+        Por qué es obligatorio: la contraseña provisional la conocen dos
+        personas —quien la ha autorizado y su titular—, así que no puede
+        quedarse puesta. Si esta ventana se pudiera saltar, esa contraseña
+        compartida sería permanente.
 
         Que esta ventana no se pueda cerrar es comodidad de interfaz, no la
         medida de seguridad: quien ignore el cliente y llame a la API se

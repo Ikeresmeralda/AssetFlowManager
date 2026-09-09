@@ -20,17 +20,19 @@ public enum PasswordResetRequestStatus
 /// dentro de la propia aplicacion.
 /// </summary>
 /// <remarks>
-/// Sustituye al codigo de un solo uso enviado por correo. El cambio no es
-/// gratuito y conviene tenerlo presente:
+/// La recuperacion se resuelve dentro de la aplicacion y no con un codigo de
+/// un solo uso enviado por correo. La eleccion no es gratuita y conviene
+/// tenerla presente:
 ///
 /// - <b>Se gana</b> independencia del correo, que es un canal que esta
 ///   aplicacion no controla y que en la practica falla (dominio sin verificar,
 ///   SPF/DKIM, carpeta de no deseado). Y se gana una decision humana explicita:
 ///   nadie recupera una cuenta sin que un administrador lo apruebe.
-/// - <b>Se pierde</b> la prueba de posesion del buzon. Antes, quien recuperaba
-///   la cuenta demostraba tener acceso al correo registrado; ahora esa
-///   comprobacion la hace una persona. Es responsabilidad del administrador
-///   confirmar por un canal aparte que quien pide el cambio es quien dice ser.
+/// - <b>Se pierde</b> la prueba de posesion del buzon. Con un codigo por
+///   correo, quien recupera la cuenta demuestra tener acceso al correo
+///   registrado; aqui esa comprobacion la hace una persona. Es responsabilidad
+///   del administrador confirmar por un canal aparte que quien pide el cambio
+///   es quien dice ser.
 ///
 /// La fila se conserva despues de resolverse: es el historial de quien pidio
 /// que y quien lo autorizo.

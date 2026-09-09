@@ -6,9 +6,7 @@ namespace AssetFlow.Core.Security;
 /// Estado de la sesion en memoria.
 /// </summary>
 /// <remarks>
-/// Sustituye al antiguo <c>Sesion</c> estatico. La diferencia importante no es
-/// tecnica sino de significado: aquello era la autoridad sobre si el usuario
-/// era administrador, y la interfaz le hacia caso. Ahora esto es solo una
+/// Esto no es la autoridad sobre si el usuario es administrador: es solo una
 /// copia local de lo que dijo el servidor, util para decidir que pintar. La
 /// autorizacion real la aplica la API en cada peticion, y si alguien
 /// manipulara este objeto lo unico que conseguiria es ver botones que al
