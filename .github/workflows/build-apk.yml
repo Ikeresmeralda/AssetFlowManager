@@ -44,8 +44,6 @@ jobs:
 
       - name: Preparar Gradle
         uses: gradle/actions/setup-gradle@v4
-        with:
-          build-root-directory: android
 
       - name: Compilar el APK de depuracion
         run: ./gradlew assembleDebug --stacktrace
