@@ -4,166 +4,165 @@ using System.Windows;
 using AssetFlow.Core.Http;
 using AssetFlow.Core.Services;
 
-namespace AssetFlow.Desktop.Dialogs
+namespace AssetFlow.Desktop.Dialogs;
+
+/// <summary>
+/// Solicitud de recuperación de contraseña, dirigida a un administrador.
+/// </summary>
+public partial class RecuperacionDialog : Window
 {
-    /// <summary>
-    /// Solicitud de recuperación de contraseña, dirigida a un administrador.
-    /// </summary>
-    public partial class RecuperacionDialog : Window
+    private readonly AuthService _auth = App.Obtener<AuthService>();
+
+    private bool _trabajando;
+
+    public RecuperacionDialog()
     {
-        private readonly AuthService _auth = App.Obtener<AuthService>();
+        InitializeComponent();
+        Loaded += (s, e) => TxtCorreo.Focus();
+    }
 
-        private bool _trabajando;
+    /// <summary>Cierto si la solicitud llegó a registrarse.</summary>
+    public bool SolicitudEnviada { get; private set; }
 
-        public RecuperacionDialog()
+    private async void AlAceptar(object sender, RoutedEventArgs e)
+    {
+        if (_trabajando) return;
+
+        await SolicitarAsync();
+    }
+
+    /// <summary>
+    /// Registra la solicitud.
+    /// </summary>
+    /// <remarks>
+    /// El mensaje que se muestra al terminar es siempre el mismo, y se
+    /// muestra incluso cuando el correo no corresponde a ninguna cuenta:
+    /// es el propio servidor el que responde igual en los dos casos.
+    /// Cambiar el texto según lo que devolviera convertiría esta ventana en
+    /// un comprobador de qué correos están dados de alta.
+    /// </remarks>
+    private async Task SolicitarAsync()
+    {
+        string correo = TxtCorreo.Text.Trim();
+
+        // Validación de forma, no de existencia. Sirve para no gastar una
+        // petición en algo que no es un correo; nunca para decidir si la
+        // cuenta existe, que es cosa del servidor.
+        if (correo.Length == 0)
         {
-            InitializeComponent();
-            Loaded += (s, e) => TxtCorreo.Focus();
+            MostrarError("Escribe el correo de tu cuenta.");
+            TxtCorreo.Focus();
+            return;
         }
 
-        /// <summary>Cierto si la solicitud llegó a registrarse.</summary>
-        public bool SolicitudEnviada { get; private set; }
-
-        private async void AlAceptar(object sender, RoutedEventArgs e)
+        if (!PareceCorreo(correo))
         {
-            if (_trabajando) return;
-
-            await SolicitarAsync();
+            MostrarError("Ese correo no tiene un formato válido.");
+            TxtCorreo.Focus();
+            return;
         }
 
-        /// <summary>
-        /// Registra la solicitud.
-        /// </summary>
-        /// <remarks>
-        /// El mensaje que se muestra al terminar es siempre el mismo, y se
-        /// muestra incluso cuando el correo no corresponde a ninguna cuenta:
-        /// es el propio servidor el que responde igual en los dos casos.
-        /// Cambiar el texto según lo que devolviera convertiría esta ventana en
-        /// un comprobador de qué correos están dados de alta.
-        /// </remarks>
-        private async Task SolicitarAsync()
+        using (Ocupado("Enviando…"))
         {
-            string correo = TxtCorreo.Text.Trim();
+            ApiResult resultado = await _auth.SolicitarRecuperacionAsync(correo);
 
-            // Validación de forma, no de existencia. Sirve para no gastar una
-            // petición en algo que no es un correo; nunca para decidir si la
-            // cuenta existe, que es cosa del servidor.
-            if (correo.Length == 0)
+            // Sólo se distinguen los fallos que no dicen nada de la cuenta:
+            // sin red, o demasiadas peticiones.
+            if (!resultado.EsCorrecto)
             {
-                MostrarError("Escribe el correo de tu cuenta.");
-                TxtCorreo.Focus();
+                MostrarError(resultado.Status == ApiStatus.Offline
+                    ? "Sin conexión con el servidor. Inténtalo de nuevo en un momento."
+                    : resultado.MensajeParaUsuario());
                 return;
             }
-
-            if (!PareceCorreo(correo))
-            {
-                MostrarError("Ese correo no tiene un formato válido.");
-                TxtCorreo.Focus();
-                return;
-            }
-
-            using (Ocupado("Enviando…"))
-            {
-                ApiResult resultado = await _auth.SolicitarRecuperacionAsync(correo);
-
-                // Sólo se distinguen los fallos que no dicen nada de la cuenta:
-                // sin red, o demasiadas peticiones.
-                if (!resultado.EsCorrecto)
-                {
-                    MostrarError(resultado.Status == ApiStatus.Offline
-                        ? "Sin conexión con el servidor. Inténtalo de nuevo en un momento."
-                        : resultado.MensajeParaUsuario());
-                    return;
-                }
-            }
-
-            SolicitudEnviada = true;
-
-            TxtCorreo.IsEnabled = false;
-            BtnAccion.IsEnabled = false;
-            BtnCancelar.Content = "Cerrar";
-
-            MostrarInfo("Si existe una cuenta asociada a ese correo, un administrador " +
-                        "recibirá tu solicitud. Ponte en contacto con esa persona para " +
-                        "que te facilite la contraseña provisional.");
         }
 
-        // ============================================================
-        // ESTADO DE LA VENTANA
-        // ============================================================
+        SolicitudEnviada = true;
 
-        /// <summary>
-        /// Bloquea la ventana mientras hay una petición en curso y la
-        /// desbloquea al salir del <c>using</c>, pase lo que pase.
-        /// </summary>
-        /// <remarks>
-        /// Sin esto, pulsar dos veces «Enviar solicitud» manda dos peticiones
-        /// seguidas y gasta el presupuesto del limitador sin motivo.
-        /// </remarks>
-        private IDisposable Ocupado(string texto)
+        TxtCorreo.IsEnabled = false;
+        BtnAccion.IsEnabled = false;
+        BtnCancelar.Content = "Cerrar";
+
+        MostrarInfo("Si existe una cuenta asociada a ese correo, un administrador " +
+                    "recibirá tu solicitud. Ponte en contacto con esa persona para " +
+                    "que te facilite la contraseña provisional.");
+    }
+
+    // ============================================================
+    // ESTADO DE LA VENTANA
+    // ============================================================
+
+    /// <summary>
+    /// Bloquea la ventana mientras hay una petición en curso y la
+    /// desbloquea al salir del <c>using</c>, pase lo que pase.
+    /// </summary>
+    /// <remarks>
+    /// Sin esto, pulsar dos veces «Enviar solicitud» manda dos peticiones
+    /// seguidas y gasta el presupuesto del limitador sin motivo.
+    /// </remarks>
+    private IDisposable Ocupado(string texto)
+    {
+        _trabajando = true;
+
+        string original = (string)BtnAccion.Content;
+
+        BtnAccion.Content = texto;
+        BtnAccion.IsEnabled = false;
+        TxtCorreo.IsEnabled = false;
+        Cursor = System.Windows.Input.Cursors.Wait;
+
+        OcultarError();
+
+        return new AlSalir(() =>
         {
-            _trabajando = true;
+            _trabajando = false;
+            BtnAccion.Content = original;
+            BtnAccion.IsEnabled = true;
+            TxtCorreo.IsEnabled = true;
+            Cursor = null;
+        });
+    }
 
-            string original = (string)BtnAccion.Content;
+    private void AlEscribir(object sender, RoutedEventArgs e) => OcultarError();
 
-            BtnAccion.Content = texto;
-            BtnAccion.IsEnabled = false;
-            TxtCorreo.IsEnabled = false;
-            Cursor = System.Windows.Input.Cursors.Wait;
+    private void MostrarError(string mensaje)
+    {
+        TxtError.Text = mensaje;
+        PanelError.Visibility = Visibility.Visible;
+    }
 
-            OcultarError();
+    private void OcultarError() => PanelError.Visibility = Visibility.Collapsed;
 
-            return new AlSalir(() =>
-            {
-                _trabajando = false;
-                BtnAccion.Content = original;
-                BtnAccion.IsEnabled = true;
-                TxtCorreo.IsEnabled = true;
-                Cursor = null;
-            });
-        }
+    private void MostrarInfo(string mensaje)
+    {
+        TxtInfo.Text = mensaje;
+        PanelInfo.Visibility = Visibility.Visible;
+    }
 
-        private void AlEscribir(object sender, RoutedEventArgs e) => OcultarError();
+    private void AlCancelar(object sender, RoutedEventArgs e) => DialogResult = false;
 
-        private void MostrarError(string mensaje)
-        {
-            TxtError.Text = mensaje;
-            PanelError.Visibility = Visibility.Visible;
-        }
+    /// <summary>
+    /// Comprobación de forma mínima. No pretende validar un correo según el
+    /// RFC: eso lo hace el servidor, y aquí sólo evita gastar una petición
+    /// en un texto que a simple vista no es una dirección.
+    /// </summary>
+    private static bool PareceCorreo(string valor)
+    {
+        int arroba = valor.IndexOf('@');
 
-        private void OcultarError() => PanelError.Visibility = Visibility.Collapsed;
+        return arroba > 0
+            && arroba < valor.Length - 1
+            && valor.IndexOf('@', arroba + 1) < 0
+            && valor.IndexOf(' ') < 0
+            && valor.LastIndexOf('.') > arroba + 1;
+    }
 
-        private void MostrarInfo(string mensaje)
-        {
-            TxtInfo.Text = mensaje;
-            PanelInfo.Visibility = Visibility.Visible;
-        }
+    private sealed class AlSalir : IDisposable
+    {
+        private readonly Action _accion;
 
-        private void AlCancelar(object sender, RoutedEventArgs e) => DialogResult = false;
+        public AlSalir(Action accion) => _accion = accion;
 
-        /// <summary>
-        /// Comprobación de forma mínima. No pretende validar un correo según el
-        /// RFC: eso lo hace el servidor, y aquí sólo evita gastar una petición
-        /// en un texto que a simple vista no es una dirección.
-        /// </summary>
-        private static bool PareceCorreo(string valor)
-        {
-            int arroba = valor.IndexOf('@');
-
-            return arroba > 0
-                && arroba < valor.Length - 1
-                && valor.IndexOf('@', arroba + 1) < 0
-                && valor.IndexOf(' ') < 0
-                && valor.LastIndexOf('.') > arroba + 1;
-        }
-
-        private sealed class AlSalir : IDisposable
-        {
-            private readonly Action _accion;
-
-            public AlSalir(Action accion) => _accion = accion;
-
-            public void Dispose() => _accion();
-        }
+        public void Dispose() => _accion();
     }
 }
