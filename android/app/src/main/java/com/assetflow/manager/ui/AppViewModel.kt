@@ -150,6 +150,26 @@ class AppViewModel(aplicacion: Application) : AndroidViewModel(aplicacion) {
         _estado.update { it.copy(pantalla = Pantalla.SERVIDOR, error = null) }
     }
 
+    /**
+     * Vuelve de la pantalla de servidor al acceso.
+     *
+     * Sólo tiene sentido si ya hay un servidor guardado, que es el caso de
+     * quien ha entrado ahí desde «Cambiar servidor». En el primer arranque no
+     * hay ninguno configurado y no existe pantalla anterior a la que volver:
+     * devuelve false y quien llama deja que el botón atrás cierre la
+     * aplicación, que es lo que espera cualquiera.
+     *
+     * @return true si se ha vuelto atrás.
+     */
+    fun volverDeServidor(): Boolean {
+        if (!sesion.hayServidor) {
+            return false
+        }
+
+        _estado.update { it.copy(pantalla = Pantalla.ACCESO, error = null) }
+        return true
+    }
+
     // -----------------------------------------------------------------------
     // Acceso
     // -----------------------------------------------------------------------

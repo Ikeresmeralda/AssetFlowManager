@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit
  *
  * Tres cosas que hace, y el motivo de cada una:
  *
- * 1. **Rechaza cualquier URL que no sea https://**, salvo el bucle local. Las
+ * 1. **Rechaza cualquier URL que no sea `https://`**, salvo el bucle local. Las
  *    credenciales viajan en el cuerpo de la petición: por HTTP en claro
  *    cualquiera en la misma red las lee. La versión anterior de esta aplicación
  *    hablaba por HTTP con una dirección IP fija escrita en el código.
@@ -24,7 +24,10 @@ import java.util.concurrent.TimeUnit
  *    de forma transparente para la interfaz.
  * 3. **No registra los cuerpos** de las peticiones. La versión anterior tenía
  *    `HttpLoggingInterceptor.Level.BODY` activado siempre, lo que escribía las
- *    contraseñas y los tokens en el registro del sistema.
+ *    contraseñas y los tokens en el registro del sistema. Aquí no se instala
+ *    ningún interceptor de registro, y la dependencia que lo proporcionaba se
+ *    ha retirado del proyecto para que no se pueda volver a activar por
+ *    descuido.
  */
 object ApiClient {
 

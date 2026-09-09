@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,6 +34,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -111,11 +113,24 @@ fun PantallaServidor(
     error: String?,
     onGuardar: (String) -> Unit
 ) {
-    var direccion by remember { mutableStateOf(servidorActual) }
+    var direccion by rememberSaveable { mutableStateOf(servidorActual) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            // La aplicación se dibuja a pantalla completa (enableEdgeToEdge en
+            // MainActivity), y desde targetSdk 35 Android lo impone sin
+            // posibilidad de desactivarlo. Sin esto, el contenido queda por
+            // debajo de la barra de estado y de la de navegación.
+            //
+            // safeDrawing cubre las barras del sistema, el recorte de la cámara
+            // y el teclado. Lo último es lo que más importa aquí: son
+            // formularios, y sin ello el teclado tapa el campo que se está
+            // rellenando.
+            //
+            // Va antes de verticalScroll para que lo que se encoja sea el área
+            // visible, no el contenido que se desplaza dentro.
+            .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -199,14 +214,24 @@ fun PantallaAcceso(
     onRecuperar: () -> Unit,
     onCambiarServidor: () -> Unit
 ) {
-    var usuario by remember { mutableStateOf(ultimoUsuario) }
+    // Al rotar el móvil la Activity se recrea. Sin `rememberSaveable`, lo
+    // tecleado se perdía: escribir el usuario, girar el teléfono y encontrarse
+    // el formulario en blanco.
+    var usuario by rememberSaveable { mutableStateOf(ultimoUsuario) }
+    var recordar by rememberSaveable { mutableStateOf(recordarInicial) }
+    var verContrasena by rememberSaveable { mutableStateOf(false) }
+
+    // Las contraseñas se quedan en `remember` a propósito, no en
+    // `rememberSaveable`: ese estado va al Bundle de la Activity, que el
+    // sistema puede escribir en disco para sobrevivir a la muerte del proceso.
+    // Perder lo tecleado al girar el móvil es una molestia; dejar una
+    // contraseña en claro en el almacenamiento del dispositivo no lo es.
     var contrasena by remember { mutableStateOf("") }
-    var recordar by remember { mutableStateOf(recordarInicial) }
-    var verContrasena by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -346,6 +371,11 @@ fun PantallaCambioObligatorio(
     onCambiar: (String, String, String) -> Unit,
     onCerrarSesion: () -> Unit
 ) {
+    // Las contraseñas se quedan en `remember` a propósito, no en
+    // `rememberSaveable`: ese estado va al Bundle de la Activity, que el
+    // sistema puede escribir en disco para sobrevivir a la muerte del proceso.
+    // Perder lo tecleado al girar el móvil es una molestia; dejar una
+    // contraseña en claro en el almacenamiento del dispositivo no lo es.
     var actual by remember { mutableStateOf("") }
     var nueva by remember { mutableStateOf("") }
     var repetida by remember { mutableStateOf("") }
@@ -353,6 +383,7 @@ fun PantallaCambioObligatorio(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .safeDrawingPadding()
             .verticalScroll(rememberScrollState())
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

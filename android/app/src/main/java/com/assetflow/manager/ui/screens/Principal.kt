@@ -199,7 +199,10 @@ private fun TarjetaMaterial(
 ) {
     var cantidad by remember(material.id) { mutableStateOf(1) }
 
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
         Column(Modifier.padding(16.dp)) {
             Text(material.name, style = MaterialTheme.typography.titleMedium)
 
@@ -326,7 +329,10 @@ private fun TarjetaPrestamo(
     onAprobarDevolucion: (LoanDto) -> Unit,
     onRechazarDevolucion: (LoanDto) -> Unit
 ) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
         Column(Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // El estado se dice con palabras además de con color: quien no

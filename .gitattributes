@@ -1,0 +1,27 @@
+# ---------------------------------------------------------------------------
+# Finales de linea y tipos de archivo
+#
+# No se normaliza todo el arbol (`* text=auto`) a proposito: los archivos ya
+# estan versionados con CRLF, que es lo que fija .editorconfig, y activar la
+# normalizacion global reescribiria el repositorio entero en un unico commit
+# que no cambia ni una linea de codigo.
+#
+# Se declara solo lo que de verdad importa: los archivos que se rompen con el
+# final de linea equivocado, y los binarios que no deben tratarse como texto.
+# ---------------------------------------------------------------------------
+
+# Con CRLF no arrancan: el interprete lee el \r como parte del nombre.
+*.sh        text eol=lf
+gradlew     text eol=lf
+
+# Estos solo funcionan con CRLF.
+*.bat       text eol=crlf
+*.cmd       text eol=crlf
+*.ps1       text eol=crlf
+
+# Binarios: ni diff de texto ni conversion de finales de linea.
+*.png       binary
+*.ico       binary
+*.jar       binary
+*.zip       binary
+*.pfx       binary

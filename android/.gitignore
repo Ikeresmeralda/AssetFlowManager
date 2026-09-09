@@ -12,3 +12,7 @@ captures/
 *.jks
 *.keystore
 google-services.json
+
+# Credenciales de firma. El .jks ya esta cubierto por *.jks mas arriba; este
+# archivo lleva las contrasenas en claro y tampoco puede entrar en git.
+keystore.properties

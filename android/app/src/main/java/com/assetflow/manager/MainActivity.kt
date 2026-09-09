@@ -2,6 +2,7 @@ package com.assetflow.manager
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
@@ -21,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,18 +58,32 @@ class MainActivity : ComponentActivity() {
 private fun AplicacionAssetFlow(vm: AppViewModel = viewModel()) {
     val estado by vm.estado.collectAsState()
 
-    var mostrarRecuperacion by remember { mutableStateOf(false) }
-    var mensajeRecuperacion by remember { mutableStateOf<String?>(null) }
+    // Sobreviven a la rotación: si el diálogo de recuperación está abierto y
+    // se gira el móvil, tiene que seguir abierto.
+    var mostrarRecuperacion by rememberSaveable { mutableStateOf(false) }
+    var mensajeRecuperacion by rememberSaveable { mutableStateOf<String?>(null) }
 
     when (estado.pantalla) {
         Pantalla.ARRANCANDO ->
             Box(Modifier.fillMaxSize(), Alignment.Center) { CircularProgressIndicator() }
 
-        Pantalla.SERVIDOR -> PantallaServidor(
-            servidorActual = estado.servidor,
-            error = estado.error,
-            onGuardar = vm::guardarServidor
-        )
+        Pantalla.SERVIDOR -> {
+            // La navegación es una máquina de estados, no una pila: sin esto
+            // el botón atrás cerraba la aplicación en lugar de devolver al
+            // acceso a quien había entrado aquí desde «Cambiar servidor».
+            //
+            // En el primer arranque no hay servidor configurado y no existe
+            // pantalla anterior: el manejador se queda desactivado y el gesto
+            // cierra la aplicación, que es lo esperable. Dejarlo siempre
+            // activo se tragaría la pulsación sin hacer nada.
+            BackHandler(enabled = estado.servidor.isNotBlank()) { vm.volverDeServidor() }
+
+            PantallaServidor(
+                servidorActual = estado.servidor,
+                error = estado.error,
+                onGuardar = vm::guardarServidor
+            )
+        }
 
         Pantalla.ACCESO -> PantallaAcceso(
             ultimoUsuario = estado.ultimoUsuario,
@@ -142,7 +158,7 @@ private fun DialogoRecuperacion(
     onEnviar: (String) -> Unit,
     onCerrar: () -> Unit
 ) {
-    var correo by remember { mutableStateOf("") }
+    var correo by rememberSaveable { mutableStateOf("") }
 
     AlertDialog(
         onDismissRequest = { if (!trabajando) onCerrar() },
